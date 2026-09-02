@@ -1,0 +1,29 @@
+[
+  {
+    "id": "usr-1",
+    "name": "Dinesh Babu",
+    "email": "dineshbabu192006@gmail.com",
+    "avatar": "DB",
+    "joinedAt": "2026-09-02T04:00:00.000Z",
+    "lastLoginAt": "2026-09-02T04:00:00.000Z",
+    "subscribedToDailyVerse": true
+  },
+  {
+    "id": "usr-2",
+    "name": "Dinesh babu",
+    "email": "babud4395@gmail.com",
+    "avatar": "DB",
+    "joinedAt": "2026-09-02T04:30:00.000Z",
+    "lastLoginAt": "2026-09-02T04:54:36.568Z",
+    "subscribedToDailyVerse": true
+  },
+  {
+    "id": "usr-1788325797679",
+    "name": "DINESH BABU ERRAPPAGARI 23BCE20081",
+    "email": "babu.23bce20081@vitapstudent.ac.in",
+    "avatar": "DB",
+    "lastLoginAt": "2026-09-02T05:09:57.679Z",
+    "joinedAt": "2026-09-02T05:09:57.681Z",
+    "subscribedToDailyVerse": true
+  }
+]

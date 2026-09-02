@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  line-height: 1;
+}
+
+body {
+  background-color: #f9f9f7;
+  color: #1a1c1b;
+  -webkit-font-smoothing: antialiased;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Custom scrollbars matching the design */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f9f9f7;
+}
+::-webkit-scrollbar-thumb {
+  background: #e5e5e0;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c5c6cf;
+}
+
+/* Zionix Custom Animations and Gradients */
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float-soft {
+  animation: float-soft 4s ease-in-out infinite;
+}
+
+.bg-gradient-heaven {
+  background: linear-gradient(180deg, #f3f4f6 0%, #ffffff 100%);
+}
+
+.dark .bg-gradient-heaven {
+  background: linear-gradient(180deg, #18181b 0%, #09090b 100%);
+}
+
+.bg-gradient-divine {
+  background: linear-gradient(135deg, #755b00 0%, #e6c364 100%);
+}
+
+.shadow-divine {
+  box-shadow: 0 10px 30px -10px rgba(117, 91, 0, 0.12);
+}
+
+.hover\:shadow-divine:hover {
+  box-shadow: 0 20px 45px -12px rgba(117, 91, 0, 0.22);
+}
+
+.text-accent {
+  color: #755b00;
+}
+
+.dark .text-accent {
+  color: #e6c364;
+}
+
+.bg-card {
+  background-color: #ffffff;
+}
+
+.dark .bg-card {
+  background-color: #18181b;
+}
+
+.border-border\/60 {
+  border-color: rgba(197, 198, 207, 0.6);
+}
+
+.dark .border-border\/60 {
+  border-color: rgba(63, 63, 70, 0.6);
+}
+
+.text-muted-foreground {
+  color: #45464e;
+}
+
+.dark .text-muted-foreground {
+  color: #a1a1aa;
+}

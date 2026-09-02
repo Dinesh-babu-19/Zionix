@@ -1,0 +1,20 @@
+# Robots.txt for Zionix Ministry - Global Web Crawling
+User-agent: *
+Allow: /
+Disallow: /admin
+
+# Priority Crawlers
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+
+User-agent: Applebot
+Allow: /
+Disallow: /admin
+
+# Sitemap Location
+Sitemap: https://zionix.org/sitemap.xml

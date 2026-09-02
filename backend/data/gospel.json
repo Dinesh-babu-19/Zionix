@@ -1,0 +1,56 @@
+[
+  {
+    "id": "jesus",
+    "title": "Who is Jesus?",
+    "icon": "person",
+    "description": "Discover the identity of the Son of God—His life, His divinity, and His humanity. A journey through the nature of Christ."
+  },
+  {
+    "id": "gospel",
+    "title": "What is the Gospel?",
+    "icon": "auto_stories",
+    "description": "A clear explanation of the good news of salvation through the death and resurrection of Jesus."
+  },
+  {
+    "id": "salvation",
+    "title": "Salvation",
+    "icon": "shield",
+    "description": "Understanding God's plan to rescue humanity from sin and restore our relationship with Him through grace."
+  },
+  {
+    "id": "grace",
+    "title": "Grace",
+    "icon": "card_giftcard",
+    "description": "Unmerited favor. Explore why salvation is a gift that cannot be earned, only received with a humble heart."
+  },
+  {
+    "id": "repentance",
+    "title": "Repentance",
+    "icon": "sync",
+    "description": "Turning away from self-will and toward God—the beginning of a new life in Christ and a change of mind."
+  },
+  {
+    "id": "faith",
+    "title": "Faith",
+    "icon": "volunteer_activism",
+    "description": "Trusting in God's promises. What it means to have a living, active faith in Jesus Christ as Lord and Savior."
+  },
+  {
+    "id": "resurrection",
+    "title": "Resurrection",
+    "icon": "sunny",
+    "description": "The triumph over death. Why the empty tomb is the cornerstone of our hope and the proof of His victory."
+  },
+  {
+    "id": "eternal-life",
+    "title": "Eternal Life",
+    "icon": "all_inclusive",
+    "description": "The promise of a future with God—infinite joy and peace in His presence forever."
+  },
+  {
+    "id": "pray",
+    "title": "How to Pray",
+    "icon": "rebase_edit",
+    "description": "Communicating with your Creator. Simple steps to start your daily conversation with God."
+  }
+]
