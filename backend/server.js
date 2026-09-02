@@ -600,7 +600,9 @@ app.get('/api/admin/users', requireAdminAuth, (req, res) => {
   res.json({ users: usersList, count: usersList.length });
 });
 
-if (!process.env.VERCEL) {
+// Start HTTP server if run directly or outside serverless
+const isDirectRun = process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].includes('server'));
+if (isDirectRun || !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
