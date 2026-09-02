@@ -196,21 +196,23 @@ export default function GospelClarity() {
           {/* Section 7: Call to Faith */}
           <motion.section 
             variants={itemVariants} 
-            className="bg-gradient-divine text-white p-8 rounded-2xl shadow-divine text-center relative overflow-hidden"
+            className="bg-gradient-divine text-white p-8 md:p-12 rounded-2xl shadow-divine text-center relative overflow-hidden group"
           >
-            <div className="absolute inset-0 bg-black/5 mix-blend-overlay"></div>
-            <h2 className="font-headline-md text-2xl md:text-3xl text-secondary-fixed font-bold mb-4">
-              Turn & Believe
-            </h2>
-            <p className="font-body-lg text-base md:text-lg leading-relaxed mb-6 max-w-[600px] mx-auto">
-              Therefore, turn from your sin and place your faith in Jesus Christ alone. He was born for our salvation, died for our sins, rose again in victory, and offers eternal life to all who believe in Him.
-            </p>
-            <div className="flex justify-center gap-4">
+            <div className="absolute inset-0 bg-black/10 mix-blend-overlay pointer-events-none"></div>
+            <div className="relative z-10 flex flex-col items-center">
+              <h2 className="font-headline-md text-2xl md:text-3xl text-white font-bold mb-4 drop-shadow-sm">
+                Turn & Believe
+              </h2>
+              <p className="font-body-lg text-base md:text-lg leading-relaxed mb-8 max-w-[620px] mx-auto text-white/95">
+                Therefore, turn from your sin and place your faith in Jesus Christ alone. He was born for our salvation, died for our sins, rose again in victory, and offers eternal life to all who believe in Him.
+              </p>
               <Link 
                 to="/bible" 
-                className="bg-primary text-white font-label-caps text-xs px-8 py-3.5 uppercase tracking-widest rounded-lg hover:bg-primary-container transition-all active:scale-95 shadow-lg flex items-center gap-2"
+                onClick={() => window.scrollTo(0, 0)}
+                className="inline-flex items-center justify-center gap-3 bg-[#041534] hover:bg-[#0a2352] text-white font-bold px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer font-label-caps text-xs uppercase tracking-widest border border-white/20"
               >
-                Explore Holy Bible <ArrowRight size={14} />
+                <span>Explore Holy Bible</span>
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
           </motion.section>
@@ -228,22 +230,6 @@ export default function GospelClarity() {
             </cite>
           </motion.section>
         </motion.div>
-
-        {/* Bottom CTA Contact Section */}
-        <section className="mt-16 pt-16 border-t border-outline-variant/30 text-center">
-          <h3 className="font-headline-md text-headline-md text-primary mb-stack-sm font-semibold">Have Questions?</h3>
-          <p className="font-body-lg text-on-surface-variant mb-stack-lg max-w-[500px] mx-auto leading-relaxed">
-            We are here to help you navigate your journey of faith. Reach out to us for prayer or guidance.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-6">
-            <button className="bg-primary text-on-primary px-10 py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-primary-container transition-all active:scale-95">
-              Contact Ministry
-            </button>
-            <button className="bg-transparent border border-outline-variant/60 text-primary px-10 py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-surface-container transition-all active:scale-95">
-              Request a Bible
-            </button>
-          </div>
-        </section>
       </div>
     </main>
   );
