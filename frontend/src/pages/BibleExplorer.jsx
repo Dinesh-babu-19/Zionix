@@ -141,9 +141,13 @@ export default function BibleExplorer() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const synthRef = useRef(window.speechSynthesis);
   
-  // UI Settings State
-  const [textSize, setTextSize] = useState('medium'); // 'small', 'medium', 'large'
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // UI Settings State (Always Light Mode by default for every new user)
+  const [textSize, setTextSize] = useState(() => localStorage.getItem('bible_text_size') || 'medium');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('bible_theme');
+    // Ensure every new user starts in clean Light Mode
+    return saved === 'dark';
+  });
   const [toastMessage, setToastMessage] = useState('');
   const [showSignInModal, setShowSignInModal] = useState(false);
   
@@ -202,6 +206,15 @@ export default function BibleExplorer() {
   useEffect(() => {
     localStorage.setItem('saved_verses', JSON.stringify(bookmarkedVerses));
   }, [bookmarkedVerses]);
+
+  // Handle local storage sync for display theme & text size
+  useEffect(() => {
+    localStorage.setItem('bible_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('bible_text_size', textSize);
+  }, [textSize]);
 
   // Handle Speech Synthesis cleanup
   useEffect(() => {
