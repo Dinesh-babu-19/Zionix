@@ -19,7 +19,8 @@ import {
   Mail,
   RefreshCw,
   Clock,
-  ShieldAlert
+  ShieldAlert,
+  Users
 } from 'lucide-react';
 
 export default function AdminDailyVerse() {
@@ -44,11 +45,12 @@ export default function AdminDailyVerse() {
 
   const [recentReflections, setRecentReflections] = useState([]);
   const [prayerRequests, setPrayerRequests] = useState([]);
+  const [registeredUsers, setRegisteredUsers] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(null);
   const [saveError, setSaveError] = useState('');
-  const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'preview' | 'history' | 'prayers'
+  const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'preview' | 'history' | 'prayers' | 'users'
   
   // Permanent Storage & GitHub Sync state
   const [githubToken, setGithubToken] = useState(() => localStorage.getItem('zionix_github_token') || '');
@@ -138,9 +140,12 @@ export default function AdminDailyVerse() {
       }).then(res => res.json()),
       fetch('/api/admin/prayer-requests', {
         headers: { 'Authorization': `Bearer ${authToken}` }
-      }).then(res => res.json())
+      }).then(res => res.json()),
+      fetch('/api/admin/users', {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      }).then(res => res.json()).catch(() => ({ users: [] }))
     ])
-      .then(([dailyData, prayerData]) => {
+      .then(([dailyData, prayerData, usersData]) => {
         if (dailyData.dailyVerse) {
           setVerse(dailyData.dailyVerse.verse || '');
           setReference(dailyData.dailyVerse.reference || '');
@@ -158,6 +163,9 @@ export default function AdminDailyVerse() {
         }
         if (Array.isArray(prayerData.prayerRequests)) {
           setPrayerRequests(prayerData.prayerRequests);
+        }
+        if (Array.isArray(usersData?.users)) {
+          setRegisteredUsers(usersData.users);
         }
         setIsLoadingData(false);
       })
@@ -477,6 +485,18 @@ export default function AdminDailyVerse() {
             >
               <HeartHandshake size={14} />
               Prayer Requests ({prayerRequests.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('users')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer ${
+                activeTab === 'users' 
+                  ? 'bg-primary text-white shadow-sm' 
+                  : 'text-on-surface-variant hover:text-primary'
+              }`}
+            >
+              <Users size={14} />
+              Believers & Subscribers ({registeredUsers.length})
             </button>
           </div>
 
@@ -1036,6 +1056,77 @@ export default function AdminDailyVerse() {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: REGISTERED BELIEVERS & SUBSCRIBERS */}
+            {activeTab === 'users' && (
+              <div className="space-y-6 text-left">
+                <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-6 md:p-8 shadow-sm">
+                  <div className="flex items-center justify-between mb-6 border-b border-outline-variant/30 pb-4 flex-wrap gap-4">
+                    <div>
+                      <h2 className="font-headline-sm text-xl font-bold text-primary flex items-center gap-2">
+                        <Users className="text-secondary" size={22} />
+                        Believers & Subscribers Receiving Daily Bread
+                      </h2>
+                      <p className="text-xs text-on-surface-variant mt-1">
+                        Every believer in this directory receives morning reflections individually and privately.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="px-3.5 py-1 bg-secondary/15 text-secondary border border-secondary/30 rounded-full text-xs font-bold uppercase tracking-wider font-label-caps">
+                        {registeredUsers.length} Active Believers
+                      </span>
+                    </div>
+                  </div>
+
+                  {registeredUsers.length === 0 ? (
+                    <div className="py-16 text-center text-on-surface-variant bg-surface rounded-2xl border border-dashed border-outline-variant/60">
+                      <Users size={36} className="mx-auto mb-3 opacity-40 text-secondary" />
+                      <p className="font-medium text-base text-primary">No registered believers found yet.</p>
+                      <p className="text-xs text-on-surface-variant mt-1">
+                        Users who subscribe or submit prayer requests will automatically appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm border-collapse">
+                        <thead>
+                          <tr className="border-b border-outline-variant/40 text-xs font-bold text-primary uppercase font-label-caps tracking-wider">
+                            <th className="py-3 px-4">Believer</th>
+                            <th className="py-3 px-4">Email Address</th>
+                            <th className="py-3 px-4">Daily Bread Status</th>
+                            <th className="py-3 px-4">Joined / Subscribed</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-outline-variant/20">
+                          {registeredUsers.map((usr, i) => (
+                            <tr key={usr.id || i} className="hover:bg-surface/60 transition-colors">
+                              <td className="py-3.5 px-4 flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shadow-sm">
+                                  {usr.name ? usr.name[0].toUpperCase() : 'Z'}
+                                </div>
+                                <span className="font-bold text-primary">{usr.name || 'Believer'}</span>
+                              </td>
+                              <td className="py-3.5 px-4 font-mono text-xs text-on-surface-variant font-semibold">
+                                {usr.email}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                                  <Check size={12} /> Active Subscriber
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-xs text-on-surface-variant font-mono">
+                                {usr.joinedAt ? new Date(usr.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>

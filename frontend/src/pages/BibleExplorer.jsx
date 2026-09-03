@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
   Bookmark,
@@ -107,12 +107,29 @@ const BIBLE_BOOKS_ORDER = [
 ];
 
 export default function BibleExplorer() {
+  const [searchParams] = useSearchParams();
+  const urlBook = searchParams.get('book')?.toLowerCase();
+  const urlChapter = parseInt(searchParams.get('chapter'), 10);
+
+  // Restore previous chapter and book user read, or fallback to John 3
+  const initialBook = (urlBook && BIBLE_BOOKS_MAP[urlBook]) 
+    ? urlBook 
+    : (localStorage.getItem('bible_last_book') || 'john');
+
+  const initialChapter = (!isNaN(urlChapter) && urlChapter > 0)
+    ? urlChapter
+    : (parseInt(localStorage.getItem('bible_last_chapter'), 10) || 3);
+
   // Navigation & View State
   const [activeTab, setActiveTab] = useState('read'); // 'read', 'favorites', 'history', 'settings'
-  const [selectedBook, setSelectedBook] = useState('john');
-  const [selectedChapter, setSelectedChapter] = useState(3);
-  const [otExpanded, setOtExpanded] = useState(false);
-  const [ntExpanded, setNtExpanded] = useState(true);
+  const [selectedBook, setSelectedBook] = useState(initialBook);
+  const [selectedChapter, setSelectedChapter] = useState(initialChapter);
+  const [otExpanded, setOtExpanded] = useState(() => {
+    return BIBLE_BOOKS_MAP[initialBook]?.testament === 'Old Testament';
+  });
+  const [ntExpanded, setNtExpanded] = useState(() => {
+    return BIBLE_BOOKS_MAP[initialBook]?.testament !== 'Old Testament';
+  });
   const [viewingChaptersForBook, setViewingChaptersForBook] = useState(null); // Book key string when viewing chapter grid
   
   // API Data State
@@ -167,6 +184,16 @@ export default function BibleExplorer() {
   useEffect(() => {
     localStorage.setItem('bible_translation', activeTranslation);
   }, [activeTranslation]);
+
+  // Persist last read book and chapter for the user
+  useEffect(() => {
+    if (selectedBook) {
+      localStorage.setItem('bible_last_book', selectedBook);
+    }
+    if (selectedChapter) {
+      localStorage.setItem('bible_last_chapter', selectedChapter.toString());
+    }
+  }, [selectedBook, selectedChapter]);
 
   // Navigate to cross reference
   const handleNavigateToReference = (refItem) => {
