@@ -148,29 +148,24 @@ async function commitFileToGitHub(filePathInRepo, contentObj, commitMessage, tok
   }
 }
 
-// Helper to create mail transporter
-const createMailTransporter = () => {
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: {
-        user: process.env.SMTP_USER.trim(),
-        pass: process.env.SMTP_PASS.trim()
-      }
-    });
-  }
+// Helper to create mail transporter (checks headers -> saved mailConfig.json -> process.env)
+const createMailTransporter = (reqHeaders = {}) => {
+  const mailConfig = readDataFile('mailConfig.json') || {};
 
-  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASS) {
+  const host = reqHeaders['x-mail-host'] || mailConfig.host || process.env.SMTP_HOST || (
+    (reqHeaders['x-mail-user'] || mailConfig.user || process.env.GMAIL_USER) ? 'smtp.gmail.com' : null
+  );
+
+  const port = Number(reqHeaders['x-mail-port'] || mailConfig.port || process.env.SMTP_PORT) || 587;
+  const user = (reqHeaders['x-mail-user'] || mailConfig.user || process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
+  const pass = (reqHeaders['x-mail-pass'] || mailConfig.pass || process.env.GMAIL_APP_PASS || process.env.SMTP_PASS || '').replace(/\s+/g, '');
+
+  if (user && pass) {
     return nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.GMAIL_USER.trim(),
-        pass: process.env.GMAIL_APP_PASS.replace(/\s+/g, '')
-      },
+      host: host || 'smtp.gmail.com',
+      port: port,
+      secure: port === 465,
+      auth: { user, pass },
       tls: {
         rejectUnauthorized: false
       }
@@ -178,6 +173,12 @@ const createMailTransporter = () => {
   }
 
   return null;
+};
+
+// Helper to get active mail sender address
+const getMailSenderAddress = (reqHeaders = {}) => {
+  const mailConfig = readDataFile('mailConfig.json') || {};
+  return (reqHeaders['x-mail-user'] || mailConfig.user || process.env.GMAIL_USER || process.env.SMTP_USER || 'daily@zionix.org').trim();
 };
 
 // Admin Credentials
@@ -343,104 +344,12 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
     };
   });
 
-  // Broadcast email notification to ALL registered users and prayer believers ONLY WHEN content has changed
-  const usersList = readDataFile('users.json') || [];
-  const prayerList = readDataFile('prayerRequests.json') || [];
-
-  // Combine and deduplicate all believers from users.json and prayerRequests.json
-  const allCandidateEmails = [
-    ...usersList.map(u => u.email),
-    ...prayerList.map(p => p.email)
-  ];
-
-  const emailRecipients = allCandidateEmails
-    .filter(Boolean)
-    .map(e => e.trim().toLowerCase())
-    .filter(e => e.includes('@') && e.includes('.'))
-    .filter((v, i, a) => a.indexOf(v) === i); // unique emails
-
-  const transporter = createMailTransporter();
-  let notifiedCount = 0;
-
-  if (hasChanged && transporter && emailRecipients.length > 0) {
-    console.log(`[Daily Verse Broadcast] Content changed. Broadcasting individually to (${emailRecipients.length}) believers for complete privacy.`);
-
-    const broadcastSubject = `🌅 Daily Bread from Zionix: ${newDailyVerse.reference} — "${newDailyVerse.verse.slice(0, 50)}..."`;
-    const broadcastHtml = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #fcfcfb;">
-        <div style="text-align: center; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
-          <h1 style="color: #041534; font-size: 24px; margin: 0; letter-spacing: -0.02em;">🌅 Zionix Daily Bread</h1>
-          <p style="color: #755b00; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 4px 0 0 0;">Today's Scripture & Morning Reflection</p>
-        </div>
-
-        <!-- Scripture Hero Box -->
-        <div style="background-color: #041534; color: #ffffff; padding: 24px; border-radius: 14px; margin-top: 20px; text-align: center; box-shadow: 0 4px 12px rgba(4,21,52,0.15);">
-          <span style="display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #fed977; margin-bottom: 8px;">Verse of the Day</span>
-          <blockquote style="font-size: 19px; font-style: italic; line-height: 1.6; margin: 0 0 12px 0;">
-            "${newDailyVerse.verse}"
-          </blockquote>
-          <p style="font-size: 14px; font-weight: 700; color: #ffffff; margin: 0;">
-            ${newDailyVerse.reference} • <span style="font-weight: 400; color: #c5c6cf;">${newDailyVerse.translation}</span>
-          </p>
-        </div>
-
-        <!-- The Context -->
-        <div style="margin-top: 20px; background-color: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #eef0f4;">
-          <h3 style="color: #041534; font-size: 15px; margin: 0 0 8px 0; font-weight: 700;">📜 The Context</h3>
-          <p style="color: #45464e; font-size: 14px; line-height: 1.6; margin: 0;">
-            ${newDailyVerse.context}
-          </p>
-        </div>
-
-        <!-- Morning Reflection -->
-        <div style="margin-top: 16px; background-color: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #eef0f4;">
-          <h3 style="color: #041534; font-size: 15px; margin: 0 0 8px 0; font-weight: 700;">✨ Morning Reflection</h3>
-          <p style="color: #45464e; font-size: 14px; line-height: 1.6; font-style: italic; margin: 0;">
-            ${newDailyVerse.devotion}
-          </p>
-        </div>
-
-        <!-- Living It Out -->
-        <div style="margin-top: 16px; background-color: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #eef0f4;">
-          <h3 style="color: #041534; font-size: 15px; margin: 0 0 12px 0; font-weight: 700;">🛠️ Living It Out Today</h3>
-          <ol style="margin: 0; padding-left: 20px; color: #45464e; font-size: 14px; line-height: 1.7;">
-            ${newDailyVerse.application.map(pt => `<li style="margin-bottom: 6px;">${pt}</li>`).join('')}
-          </ol>
-        </div>
-
-        <!-- Read on Site CTA (Always directs to deployed production website) -->
-        <div style="text-align: center; margin-top: 28px;">
-          <a href="https://zionix-nine.vercel.app/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 13px 32px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-            Read & Listen on Zionix →
-          </a>
-        </div>
-
-        <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-          <p style="margin: 0;">You are receiving this spiritual encouragement because you are connected to Zionix.</p>
-        </div>
-      </div>
-    `;
-
-    const senderAddr = process.env.GMAIL_USER ? process.env.GMAIL_USER.trim() : 'daily@zionix.org';
-
-    // SEND TO EACH USER INDIVIDUALLY FOR COMPLETE PRIVACY (no shared email headers)
-    for (const recipient of emailRecipients) {
-      try {
-        await transporter.sendMail({
-          from: `"Zionix Daily Bread" <${senderAddr}>`,
-          to: recipient,
-          subject: broadcastSubject,
-          html: broadcastHtml
-        });
-        notifiedCount++;
-        console.log(`[Daily Verse Broadcast] Sent individual email to: ${recipient}`);
-      } catch (err) {
-        console.error(`[Daily Verse Broadcast] Failed to send to ${recipient}:`, err.message);
-      }
-    }
-  } else if (!hasChanged) {
-    console.log(`[Daily Verse Broadcast] No changes detected in Daily Bread. Skipping broadcast to avoid duplicate emails.`);
-  }
+  // Broadcast function to email Daily Bread to all registered users and prayer believers
+  const emailDeliveryResult = await broadcastDailyVerseToUsers(
+    newDailyVerse, 
+    req.body.knownUsers || [], 
+    req.headers
+  );
 
   // Permanent GitHub Commit Sync (commits changes directly to git repo if GITHUB_TOKEN is available)
   const githubToken = req.headers['x-github-token'] || process.env.GITHUB_TOKEN;
@@ -475,13 +384,288 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
 
   res.json({
     success: true,
-    message: hasChanged 
-      ? `Daily Bread updated successfully! Email notification sent to ${notifiedCount} registered believers.`
-      : 'Daily Bread saved. No content changes detected, email broadcast skipped.',
+    message: emailDeliveryResult.sentCount > 0
+      ? `Daily Bread updated successfully! Email notification sent individually to ${emailDeliveryResult.sentCount} believers.`
+      : (emailDeliveryResult.transporterConfigured
+          ? `Daily Bread saved. Email delivery attempted for ${emailDeliveryResult.totalRecipients} recipients, but encountered errors.`
+          : 'Daily Bread saved! Note: Email broadcast was not sent because Mail credentials (Gmail/SMTP) are not configured.'),
     dailyVerse: newDailyVerse,
     recentReflections: formattedReflections,
-    notifiedUsersCount: notifiedCount,
+    notifiedUsersCount: emailDeliveryResult.sentCount,
+    emailDelivery: emailDeliveryResult,
     githubSync: githubSyncResult
+  });
+});
+
+// Dedicated Daily Bread Broadcast Helper function
+async function broadcastDailyVerseToUsers(dailyVerse, additionalUsers = [], reqHeaders = {}) {
+  const usersList = readDataFile('users.json') || [];
+  const prayerList = readDataFile('prayerRequests.json') || [];
+
+  // Combine and deduplicate all believers from users.json, prayerRequests.json, and additional client-provided users
+  const allCandidateEmails = [
+    ...usersList.map(u => u.email),
+    ...prayerList.map(p => p.email),
+    ...additionalUsers.map(u => typeof u === 'string' ? u : u?.email),
+    'dineshbabu192006@gmail.com',
+    'babud4395@gmail.com'
+  ];
+
+  const emailRecipients = allCandidateEmails
+    .filter(Boolean)
+    .map(e => e.trim().toLowerCase())
+    .filter(e => e.includes('@') && e.includes('.'))
+    .filter((v, i, a) => a.indexOf(v) === i); // unique emails
+
+  const transporter = createMailTransporter(reqHeaders);
+  const senderAddr = getMailSenderAddress(reqHeaders);
+
+  const deliveryResult = {
+    transporterConfigured: !!transporter,
+    sender: senderAddr,
+    totalRecipients: emailRecipients.length,
+    sentCount: 0,
+    failedCount: 0,
+    recipients: emailRecipients,
+    errors: []
+  };
+
+  if (!transporter) {
+    console.warn('[Daily Verse Broadcast] Mail transporter not configured. Set GMAIL_USER/GMAIL_APP_PASS or configure in Admin panel.');
+    deliveryResult.errors.push('Mail credentials not configured. Please enter your Gmail and 16-character App Password.');
+    return deliveryResult;
+  }
+
+  if (emailRecipients.length === 0) {
+    console.warn('[Daily Verse Broadcast] No email recipients found to broadcast to.');
+    return deliveryResult;
+  }
+
+  console.log(`[Daily Verse Broadcast] Broadcasting individually to (${emailRecipients.length}) believers for complete privacy.`);
+
+  const broadcastSubject = `🌅 Daily Bread from Zionix: ${dailyVerse.reference} — "${dailyVerse.verse.slice(0, 50)}..."`;
+  const broadcastHtml = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #fcfcfb;">
+      <div style="text-align: center; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+        <h1 style="color: #041534; font-size: 24px; margin: 0; letter-spacing: -0.02em;">🌅 Zionix Daily Bread</h1>
+        <p style="color: #755b00; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 4px 0 0 0;">Today's Scripture & Morning Reflection</p>
+      </div>
+
+      <!-- Scripture Hero Box -->
+      <div style="background-color: #041534; color: #ffffff; padding: 24px; border-radius: 14px; margin-top: 20px; text-align: center; box-shadow: 0 4px 12px rgba(4,21,52,0.15);">
+        <span style="display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #fed977; margin-bottom: 8px;">Verse of the Day</span>
+        <blockquote style="font-size: 19px; font-style: italic; line-height: 1.6; margin: 0 0 12px 0;">
+          "${dailyVerse.verse}"
+        </blockquote>
+        <p style="font-size: 14px; font-weight: 700; color: #ffffff; margin: 0;">
+          ${dailyVerse.reference} • <span style="font-weight: 400; color: #c5c6cf;">${dailyVerse.translation || 'English Standard Version'}</span>
+        </p>
+      </div>
+
+      <!-- The Context -->
+      <div style="margin-top: 20px; background-color: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #eef0f4;">
+        <h3 style="color: #041534; font-size: 15px; margin: 0 0 8px 0; font-weight: 700;">📜 The Context</h3>
+        <p style="color: #45464e; font-size: 14px; line-height: 1.6; margin: 0;">
+          ${dailyVerse.context}
+        </p>
+      </div>
+
+      <!-- Morning Reflection -->
+      <div style="margin-top: 16px; background-color: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #eef0f4;">
+        <h3 style="color: #041534; font-size: 15px; margin: 0 0 8px 0; font-weight: 700;">✨ Morning Reflection</h3>
+        <p style="color: #45464e; font-size: 14px; line-height: 1.6; font-style: italic; margin: 0;">
+          ${dailyVerse.devotion}
+        </p>
+      </div>
+
+      <!-- Living It Out -->
+      <div style="margin-top: 16px; background-color: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #eef0f4;">
+        <h3 style="color: #041534; font-size: 15px; margin: 0 0 12px 0; font-weight: 700;">🛠️ Living It Out Today</h3>
+        <ol style="margin: 0; padding-left: 20px; color: #45464e; font-size: 14px; line-height: 1.7;">
+          ${(dailyVerse.application || []).map(pt => `<li style="margin-bottom: 6px;">${pt}</li>`).join('')}
+        </ol>
+      </div>
+
+      <!-- Read on Site CTA (Always directs to deployed production website) -->
+      <div style="text-align: center; margin-top: 28px;">
+        <a href="https://zionix-nine.vercel.app/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 13px 32px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+          Read & Listen on Zionix →
+        </a>
+      </div>
+
+      <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+        <p style="margin: 0;">You are receiving this spiritual encouragement because you are connected to Zionix.</p>
+      </div>
+    </div>
+  `;
+
+  // SEND TO EACH USER INDIVIDUALLY FOR COMPLETE PRIVACY (no shared email headers)
+  for (const recipient of emailRecipients) {
+    try {
+      await transporter.sendMail({
+        from: `"Zionix Daily Bread" <${senderAddr}>`,
+        to: recipient,
+        subject: broadcastSubject,
+        html: broadcastHtml
+      });
+      deliveryResult.sentCount++;
+      console.log(`[Daily Verse Broadcast] Sent individual email to: ${recipient}`);
+    } catch (err) {
+      deliveryResult.failedCount++;
+      const errMsg = `${recipient}: ${err.message}`;
+      deliveryResult.errors.push(errMsg);
+      console.error(`[Daily Verse Broadcast] Failed to send to ${recipient}:`, err.message);
+    }
+  }
+
+  return deliveryResult;
+}
+
+// On-demand Broadcast API (allows admin to re-send or broadcast anytime from admin portal)
+app.post('/api/admin/broadcast-daily-verse', requireAdminAuth, async (req, res) => {
+  const currentDaily = readDataFile('dailyVerse.json');
+  if (!currentDaily) {
+    return res.status(404).json({ error: 'No Daily Bread published yet.' });
+  }
+
+  const emailDelivery = await broadcastDailyVerseToUsers(
+    currentDaily, 
+    req.body.knownUsers || [], 
+    req.headers
+  );
+
+  res.json({
+    success: true,
+    message: emailDelivery.sentCount > 0 
+      ? `Broadcast complete! Sent to ${emailDelivery.sentCount} believers.`
+      : (emailDelivery.transporterConfigured
+          ? `Attempted broadcast to ${emailDelivery.totalRecipients} recipients, but failed to send.`
+          : 'Mail credentials not configured.'),
+    emailDelivery
+  });
+});
+
+// Admin Email Connection Test API
+app.post('/api/admin/test-email', requireAdminAuth, async (req, res) => {
+  const transporter = createMailTransporter(req.headers);
+  const senderAddr = getMailSenderAddress(req.headers);
+  const targetEmail = (req.body.targetEmail || senderAddr).trim();
+
+  if (!transporter) {
+    return res.status(400).json({ 
+      error: 'Mail credentials (Gmail or SMTP) are not configured. Please enter your Gmail address and 16-character App Password.' 
+    });
+  }
+
+  try {
+    // Send test email
+    await transporter.sendMail({
+      from: `"Zionix Test" <${senderAddr}>`,
+      to: targetEmail,
+      subject: '🕊️ Zionix Email Connection Test: Successful!',
+      html: `
+        <div style="font-family: sans-serif; padding: 24px; max-width: 520px; border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff;">
+          <div style="text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px;">
+            <h2 style="color: #041534; margin: 0 0 6px 0;">🕊️ Email Connected Successfully</h2>
+            <p style="color: #755b00; font-size: 13px; font-weight: 700; text-transform: uppercase; margin: 0;">Zionix Ministry Broadcast System</p>
+          </div>
+          <p style="color: #334155; font-size: 14px; line-height: 1.6;">
+            Grace and peace to you! Your email configuration is verified and working properly. Zionix is ready to send Daily Bread reflections individually and privately to all registered believers upon every admin update.
+          </p>
+          <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; font-size: 12px; color: #64748b; margin-top: 16px;">
+            <strong>Sender:</strong> ${senderAddr}<br/>
+            <strong>Recipient:</strong> ${targetEmail}<br/>
+            <strong>Verified At:</strong> ${new Date().toLocaleString()}
+          </div>
+        </div>
+      `
+    });
+
+    res.json({
+      success: true,
+      message: `Test email sent successfully to ${targetEmail}!`
+    });
+  } catch (err) {
+    console.error('[Test Email Error]:', err.message);
+    let suggestion = '';
+    if (err.message.includes('Username and Password not accepted') || err.message.includes('535') || err.message.includes('BadCredentials')) {
+      suggestion = 'Gmail requires a 16-character Google App Password (not your normal Google account password). Go to myaccount.google.com/apppasswords with 2-Step Verification enabled to generate one.';
+    }
+    res.status(500).json({
+      error: err.message,
+      suggestion
+    });
+  }
+});
+
+// Admin Mail Config Save / Get APIs
+app.get('/api/admin/mail-config', requireAdminAuth, (req, res) => {
+  const mailConfig = readDataFile('mailConfig.json') || {};
+  const user = (mailConfig.user || process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
+  const hasPass = !!(mailConfig.pass || process.env.GMAIL_APP_PASS || process.env.SMTP_PASS);
+  res.json({
+    configured: !!(user && hasPass),
+    user: user ? `${user.slice(0, 3)}***@${user.split('@')[1] || ''}` : '',
+    rawUser: user,
+    host: mailConfig.host || process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: mailConfig.port || process.env.SMTP_PORT || 587
+  });
+});
+
+app.post('/api/admin/mail-config', requireAdminAuth, (req, res) => {
+  const { user, pass, host, port } = req.body;
+  const config = {
+    user: (user || '').trim(),
+    pass: (pass || '').replace(/\s+/g, ''),
+    host: (host || 'smtp.gmail.com').trim(),
+    port: Number(port) || 587,
+    updatedAt: new Date().toISOString()
+  };
+  writeDataFile('mailConfig.json', config);
+  res.json({
+    success: true,
+    message: 'Mail credentials saved successfully!',
+    configured: !!(config.user && config.pass)
+  });
+});
+
+// Admin endpoint to add believer manually
+app.post('/api/admin/users', requireAdminAuth, async (req, res) => {
+  const { name, email } = req.body;
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    return res.status(400).json({ error: 'Valid email address is required' });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  let usersList = readDataFile('users.json') || [];
+  const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
+
+  if (existingIdx >= 0) {
+    usersList[existingIdx].name = name && name.trim() ? name.trim() : usersList[existingIdx].name;
+    usersList[existingIdx].subscribedToDailyVerse = true;
+  } else {
+    usersList.push({
+      id: `usr-${Date.now()}`,
+      name: name && name.trim() ? name.trim() : normalizedEmail.split('@')[0],
+      email: normalizedEmail,
+      avatar: name && name.trim() ? name.trim()[0].toUpperCase() : 'Z',
+      joinedAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+      subscribedToDailyVerse: true
+    });
+  }
+
+  writeDataFile('users.json', usersList);
+
+  const githubToken = req.headers['x-github-token'] || process.env.GITHUB_TOKEN;
+  if (githubToken) {
+    commitFileToGitHub('backend/data/users.json', usersList, `chore(users): Add believer ${normalizedEmail}`, githubToken).catch(() => {});
+  }
+
+  res.json({
+    success: true,
+    users: usersList,
+    message: `Believer ${normalizedEmail} successfully registered for Daily Bread updates!`
   });
 });
 

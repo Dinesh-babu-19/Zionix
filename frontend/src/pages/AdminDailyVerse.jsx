@@ -21,7 +21,9 @@ import {
   Clock,
   ShieldAlert,
   Users,
-  Copy
+  Copy,
+  Send,
+  Plus
 } from 'lucide-react';
 
 export default function AdminDailyVerse() {
@@ -57,6 +59,24 @@ export default function AdminDailyVerse() {
   const [githubToken, setGithubToken] = useState(() => localStorage.getItem('zionix_github_token') || '');
   const [showGitSyncSettings, setShowGitSyncSettings] = useState(false);
   const [copyJsonSuccess, setCopyJsonSuccess] = useState(false);
+
+  // Email Broadcast (Gmail / SMTP) state
+  const [mailUser, setMailUser] = useState(() => localStorage.getItem('zionix_mail_user') || '');
+  const [mailPass, setMailPass] = useState(() => localStorage.getItem('zionix_mail_pass') || '');
+  const [mailHost, setMailHost] = useState(() => localStorage.getItem('zionix_mail_host') || 'smtp.gmail.com');
+  const [mailPort, setMailPort] = useState(() => localStorage.getItem('zionix_mail_port') || '587');
+  const [showMailSettings, setShowMailSettings] = useState(false);
+  const [isTestingEmail, setIsTestingEmail] = useState(false);
+  const [testEmailResult, setTestEmailResult] = useState(null);
+  const [isBroadcastingNow, setIsBroadcastingNow] = useState(false);
+  const [broadcastStatus, setBroadcastStatus] = useState(null);
+
+  // Add Believer state
+  const [showAddBelieverModal, setShowAddBelieverModal] = useState(false);
+  const [newBelieverName, setNewBelieverName] = useState('');
+  const [newBelieverEmail, setNewBelieverEmail] = useState('');
+  const [isAddingBeliever, setIsAddingBeliever] = useState(false);
+  const [addBelieverMessage, setAddBelieverMessage] = useState(null);
 
   const handleExportJson = () => {
     const exportObj = {
@@ -254,6 +274,22 @@ export default function AdminDailyVerse() {
         headers['x-github-token'] = githubToken.trim();
         localStorage.setItem('zionix_github_token', githubToken.trim());
       }
+      if (mailUser && mailUser.trim()) {
+        headers['x-mail-user'] = mailUser.trim();
+        localStorage.setItem('zionix_mail_user', mailUser.trim());
+      }
+      if (mailPass && mailPass.trim()) {
+        headers['x-mail-pass'] = mailPass.trim();
+        localStorage.setItem('zionix_mail_pass', mailPass.trim());
+      }
+      if (mailHost && mailHost.trim()) {
+        headers['x-mail-host'] = mailHost.trim();
+        localStorage.setItem('zionix_mail_host', mailHost.trim());
+      }
+      if (mailPort && mailPort.trim()) {
+        headers['x-mail-port'] = mailPort.trim();
+        localStorage.setItem('zionix_mail_port', mailPort.trim());
+      }
 
       const res = await fetch('/api/admin/daily-verse', {
         method: 'POST',
@@ -264,7 +300,9 @@ export default function AdminDailyVerse() {
           translation: translation.trim() || 'English Standard Version',
           context: context.trim(),
           devotion: devotion.trim(),
-          application: [appPoint1.trim(), appPoint2.trim(), appPoint3.trim()]
+          application: [appPoint1.trim(), appPoint2.trim(), appPoint3.trim()],
+          knownUsers: registeredUsers.map(u => ({ name: u.name, email: u.email })),
+          sendBroadcast: true
         })
       });
 
@@ -278,22 +316,155 @@ export default function AdminDailyVerse() {
         localStorage.setItem('zionix_custom_daily_verse', JSON.stringify(data.dailyVerse));
       }
 
-      if (data.githubSync && data.githubSync.success) {
-        setSaveSuccess(`Daily Bread published & permanently committed to GitHub repository! (Commit: ${data.githubSync.commitSha?.slice(0, 7)})`);
-      } else {
-        setSaveSuccess('Daily Bread has been updated & permanently saved! Previous verse has been archived into reflections history.');
+      // Build detailed success feedback including individual email delivery status
+      let feedback = 'Daily Bread has been updated & permanently saved!';
+      if (data.emailDelivery) {
+        if (data.emailDelivery.sentCount > 0) {
+          feedback += ` 📧 Email notification delivered individually to ${data.emailDelivery.sentCount} believers.`;
+        } else if (!data.emailDelivery.transporterConfigured) {
+          feedback += ` (⚠️ Note: Email broadcast was not sent because Mail credentials are not configured yet. Configure Email below.)`;
+        } else if (data.emailDelivery.failedCount > 0) {
+          feedback += ` (⚠️ Email delivery error: ${data.emailDelivery.errors[0] || 'Check SMTP credentials'})`;
+        }
       }
+
+      if (data.githubSync && data.githubSync.success) {
+        feedback += ` (Committed to GitHub: ${data.githubSync.commitSha?.slice(0, 7)})`;
+      }
+
+      setSaveSuccess(feedback);
 
       if (Array.isArray(data.recentReflections)) {
         setRecentReflections(data.recentReflections);
       }
       setTimeout(() => {
         setSaveSuccess(null);
-      }, 6000);
+      }, 9000);
     } catch (err) {
       setSaveError(err.message || 'Failed to update Daily Bread. Please try again.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Test email sender connection
+  const handleTestEmail = async () => {
+    if (!mailUser || !mailUser.trim()) {
+      setTestEmailResult({ success: false, message: 'Please enter a Gmail/Sender address.' });
+      return;
+    }
+    setIsTestingEmail(true);
+    setTestEmailResult(null);
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      };
+      if (mailUser) headers['x-mail-user'] = mailUser.trim();
+      if (mailPass) headers['x-mail-pass'] = mailPass.trim();
+      if (mailHost) headers['x-mail-host'] = mailHost.trim();
+      if (mailPort) headers['x-mail-port'] = mailPort.trim();
+
+      const res = await fetch('/api/admin/test-email', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ targetEmail: mailUser.trim() })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTestEmailResult({ success: true, message: data.message });
+      } else {
+        setTestEmailResult({ 
+          success: false, 
+          message: data.suggestion ? `${data.error} — ${data.suggestion}` : (data.error || 'Connection test failed.') 
+        });
+      }
+    } catch (err) {
+      setTestEmailResult({ success: false, message: err.message || 'Failed to send test email.' });
+    } finally {
+      setIsTestingEmail(false);
+    }
+  };
+
+  // Broadcast Daily Bread to all believers on-demand
+  const handleBroadcastNow = async () => {
+    if (!window.confirm(`Broadcast current Daily Bread to all (${registeredUsers.length}) believers individually?`)) return;
+    setIsBroadcastingNow(true);
+    setBroadcastStatus(null);
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      };
+      if (mailUser) headers['x-mail-user'] = mailUser.trim();
+      if (mailPass) headers['x-mail-pass'] = mailPass.trim();
+      if (mailHost) headers['x-mail-host'] = mailHost.trim();
+      if (mailPort) headers['x-mail-port'] = mailPort.trim();
+
+      const res = await fetch('/api/admin/broadcast-daily-verse', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          knownUsers: registeredUsers.map(u => ({ name: u.name, email: u.email }))
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setBroadcastStatus({
+          success: data.emailDelivery?.sentCount > 0,
+          message: data.message || `Broadcast completed! Sent to ${data.emailDelivery?.sentCount} believers.`
+        });
+      } else {
+        setBroadcastStatus({
+          success: false,
+          message: data.error || 'Failed to broadcast emails.'
+        });
+      }
+    } catch (err) {
+      setBroadcastStatus({ success: false, message: err.message || 'Broadcast error occurred.' });
+    } finally {
+      setIsBroadcastingNow(false);
+    }
+  };
+
+  // Add believer manually
+  const handleAddBeliever = async (e) => {
+    e.preventDefault();
+    if (!newBelieverEmail || !newBelieverEmail.includes('@')) {
+      setAddBelieverMessage({ success: false, message: 'Please provide a valid email address.' });
+      return;
+    }
+    setIsAddingBeliever(true);
+    setAddBelieverMessage(null);
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      };
+      if (githubToken) headers['x-github-token'] = githubToken.trim();
+
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: newBelieverName.trim(),
+          email: newBelieverEmail.trim()
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRegisteredUsers(data.users || []);
+        setAddBelieverMessage({ success: true, message: data.message || 'Believer added successfully!' });
+        setNewBelieverName('');
+        setNewBelieverEmail('');
+        setTimeout(() => setShowAddBelieverModal(false), 2000);
+      } else {
+        setAddBelieverMessage({ success: false, message: data.error || 'Failed to add believer.' });
+      }
+    } catch (err) {
+      setAddBelieverMessage({ success: false, message: err.message || 'Failed to add believer.' });
+    } finally {
+      setIsAddingBeliever(false);
     }
   };
 
@@ -751,6 +922,20 @@ export default function AdminDailyVerse() {
                         <Key size={14} />
                         <span>{githubToken ? 'GitHub Token Linked' : 'Link GitHub Token'}</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowMailSettings(!showMailSettings)}
+                        className={`px-3.5 py-1.5 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          mailUser && mailPass 
+                            ? 'bg-blue-50 text-blue-800 border-blue-300' 
+                            : 'bg-amber-50 text-amber-900 border-amber-300'
+                        }`}
+                        title="Configure Gmail/SMTP credentials so all users receive emails"
+                      >
+                        <Mail size={14} />
+                        <span>{mailUser && mailPass ? 'Email Broadcast Configured' : '⚙️ Configure Email Sender'}</span>
+                      </button>
                     </div>
                   </div>
 
@@ -786,6 +971,117 @@ export default function AdminDailyVerse() {
                       <span className="text-[11px] text-on-surface-variant/70 block">
                         🔒 Token is stored locally in your browser and used only to commit <code>dailyVerse.json</code> when you click Publish.
                       </span>
+                    </div>
+                  )}
+
+                  {/* Email Broadcast Configuration Panel */}
+                  {showMailSettings && (
+                    <div className="mt-4 pt-4 border-t border-outline-variant/30 text-left space-y-4 animate-fade-in bg-surface-container-low/50 p-4 rounded-xl">
+                      <div>
+                        <h4 className="text-xs font-bold text-primary flex items-center gap-1.5 uppercase font-label-caps tracking-wider">
+                          <Mail size={14} className="text-secondary" />
+                          Email Sender Credentials (Gmail / SMTP)
+                        </h4>
+                        <p className="text-xs text-on-surface-variant mt-1">
+                          Configure the sender email so Zionix automatically sends Daily Bread to <strong>every new believer and all registered believers individually</strong> upon every change.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-primary mb-1">
+                            Gmail / Sender Email
+                          </label>
+                          <input
+                            type="email"
+                            value={mailUser}
+                            onChange={(e) => {
+                              setMailUser(e.target.value);
+                              localStorage.setItem('zionix_mail_user', e.target.value);
+                            }}
+                            placeholder="e.g. dineshbabu192006@gmail.com"
+                            className="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono focus:outline-none focus:border-primary"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-primary mb-1">
+                            16-Character Google App Password
+                          </label>
+                          <input
+                            type="password"
+                            value={mailPass}
+                            onChange={(e) => {
+                              setMailPass(e.target.value);
+                              localStorage.setItem('zionix_mail_pass', e.target.value);
+                            }}
+                            placeholder="xxxx xxxx xxxx xxxx"
+                            className="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Advanced Host/Port */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                            SMTP Host
+                          </label>
+                          <input
+                            type="text"
+                            value={mailHost}
+                            onChange={(e) => {
+                              setMailHost(e.target.value);
+                              localStorage.setItem('zionix_mail_host', e.target.value);
+                            }}
+                            placeholder="smtp.gmail.com"
+                            className="w-full px-3 py-1.5 bg-surface border border-outline-variant rounded-lg text-xs font-mono"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                            SMTP Port
+                          </label>
+                          <input
+                            type="text"
+                            value={mailPort}
+                            onChange={(e) => {
+                              setMailPort(e.target.value);
+                              localStorage.setItem('zionix_mail_port', e.target.value);
+                            }}
+                            placeholder="587"
+                            className="w-full px-3 py-1.5 bg-surface border border-outline-variant rounded-lg text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Actions: Test Email & Guidance */}
+                      <div className="flex items-center justify-between flex-wrap gap-3 pt-2 border-t border-outline-variant/30">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            disabled={isTestingEmail || !mailUser}
+                            onClick={handleTestEmail}
+                            className="px-4 py-2 bg-primary hover:bg-primary-container text-white rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all shadow-sm"
+                          >
+                            {isTestingEmail ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
+                            <span>{isTestingEmail ? 'Testing Connection...' : '🧪 Send Test Email'}</span>
+                          </button>
+
+                          {testEmailResult && (
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-md ${
+                              testEmailResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {testEmailResult.message}
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="text-[11px] text-on-surface-variant/80">
+                          📌 <strong>How to get App Password:</strong> Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="text-secondary font-bold underline">Google App Passwords</a> (requires 2FA) → generate a 16-character code for "Zionix" → paste above.
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1086,12 +1382,108 @@ export default function AdminDailyVerse() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        disabled={isBroadcastingNow || registeredUsers.length === 0}
+                        onClick={handleBroadcastNow}
+                        className="px-4 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider flex items-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                        title="Immediately send the current Daily Bread email to all believers"
+                      >
+                        {isBroadcastingNow ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
+                        <span>{isBroadcastingNow ? 'Broadcasting...' : `📢 Broadcast to All (${registeredUsers.length}) Believers Now`}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowAddBelieverModal(!showAddBelieverModal)}
+                        className="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-primary border border-outline-variant rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Plus size={14} />
+                        <span>Add Believer</span>
+                      </button>
+
                       <span className="px-3.5 py-1 bg-secondary/15 text-secondary border border-secondary/30 rounded-full text-xs font-bold uppercase tracking-wider font-label-caps">
                         {registeredUsers.length} Active Believers
                       </span>
                     </div>
                   </div>
+
+                  {/* Broadcast Status Notification */}
+                  {broadcastStatus && (
+                    <div className={`mb-6 p-4 rounded-xl border flex items-start gap-3 shadow-sm ${
+                      broadcastStatus.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
+                    }`}>
+                      {broadcastStatus.success ? <CheckCircle2 size={18} className="text-green-600 shrink-0 mt-0.5" /> : <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />}
+                      <div className="text-xs font-medium">
+                        <p className="font-bold">{broadcastStatus.success ? 'Broadcast Delivered' : 'Broadcast Notice'}</p>
+                        <p className="mt-0.5">{broadcastStatus.message}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inline Add Believer Form */}
+                  {showAddBelieverModal && (
+                    <form onSubmit={handleAddBeliever} className="mb-6 p-4 bg-surface rounded-xl border border-outline-variant/60 shadow-sm space-y-3 animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-primary uppercase font-label-caps tracking-wider flex items-center gap-1.5">
+                          <Plus size={14} className="text-secondary" /> Add New Believer / Subscriber
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => setShowAddBelieverModal(false)}
+                          className="text-xs text-on-surface-variant hover:text-primary"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-primary mb-1">
+                            Believer Name
+                          </label>
+                          <input
+                            type="text"
+                            value={newBelieverName}
+                            onChange={(e) => setNewBelieverName(e.target.value)}
+                            placeholder="e.g. John Doe"
+                            className="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-primary mb-1">
+                            Email Address <span className="text-error">*</span>
+                          </label>
+                          <input
+                            type="email"
+                            required
+                            value={newBelieverEmail}
+                            onChange={(e) => setNewBelieverEmail(e.target.value)}
+                            placeholder="e.g. believer@gmail.com"
+                            className="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        {addBelieverMessage && (
+                          <span className={`text-xs font-semibold ${addBelieverMessage.success ? 'text-green-700' : 'text-red-600'}`}>
+                            {addBelieverMessage.message}
+                          </span>
+                        )}
+                        <button
+                          type="submit"
+                          disabled={isAddingBeliever}
+                          className="ml-auto px-4 py-2 bg-primary hover:bg-primary-container text-white rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider disabled:opacity-50 cursor-pointer flex items-center gap-1.5 shadow-sm"
+                        >
+                          {isAddingBeliever ? <RefreshCw size={13} className="animate-spin" /> : <Check size={13} />}
+                          <span>{isAddingBeliever ? 'Saving...' : 'Register Believer'}</span>
+                        </button>
+                      </div>
+                    </form>
+                  )}
 
                   {registeredUsers.length === 0 ? (
                     <div className="py-16 text-center text-on-surface-variant bg-surface rounded-2xl border border-dashed border-outline-variant/60">
