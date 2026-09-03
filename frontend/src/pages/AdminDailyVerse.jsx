@@ -49,6 +49,47 @@ export default function AdminDailyVerse() {
   const [saveSuccess, setSaveSuccess] = useState(null);
   const [saveError, setSaveError] = useState('');
   const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'preview' | 'history' | 'prayers'
+  
+  // Permanent Storage & GitHub Sync state
+  const [githubToken, setGithubToken] = useState(() => localStorage.getItem('zionix_github_token') || '');
+  const [showGitSyncSettings, setShowGitSyncSettings] = useState(false);
+  const [copyJsonSuccess, setCopyJsonSuccess] = useState(false);
+
+  const handleExportJson = () => {
+    const exportObj = {
+      verse: verse.trim(),
+      reference: reference.trim(),
+      translation: translation.trim() || 'English Standard Version',
+      context: context.trim(),
+      devotion: devotion.trim(),
+      application: [appPoint1.trim(), appPoint2.trim(), appPoint3.trim()],
+      updatedAt: new Date().toISOString()
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "dailyVerse.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleCopyJson = async () => {
+    const exportObj = {
+      verse: verse.trim(),
+      reference: reference.trim(),
+      translation: translation.trim() || 'English Standard Version',
+      context: context.trim(),
+      devotion: devotion.trim(),
+      application: [appPoint1.trim(), appPoint2.trim(), appPoint3.trim()],
+      updatedAt: new Date().toISOString()
+    };
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(exportObj, null, 2));
+      setCopyJsonSuccess(true);
+      setTimeout(() => setCopyJsonSuccess(false), 3000);
+    } catch (e) {}
+  };
 
   // Format prayer request time accurately according to local timezone
   const formatRequestDate = (req) => {
@@ -188,12 +229,18 @@ export default function AdminDailyVerse() {
     setIsSaving(true);
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      };
+      if (githubToken && githubToken.trim()) {
+        headers['x-github-token'] = githubToken.trim();
+        localStorage.setItem('zionix_github_token', githubToken.trim());
+      }
+
       const res = await fetch('/api/admin/daily-verse', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
+        headers,
         body: JSON.stringify({
           verse: verse.trim(),
           reference: reference.trim(),
@@ -209,13 +256,23 @@ export default function AdminDailyVerse() {
         throw new Error(data.error || 'Failed to save changes');
       }
 
-      setSaveSuccess('Daily Bread has been updated successfully! Previous verse has been archived into the 5-day reflections history.');
+      // Persist permanently in client browser storage
+      if (data.dailyVerse) {
+        localStorage.setItem('zionix_custom_daily_verse', JSON.stringify(data.dailyVerse));
+      }
+
+      if (data.githubSync && data.githubSync.success) {
+        setSaveSuccess(`Daily Bread published & permanently committed to GitHub repository! (Commit: ${data.githubSync.commitSha?.slice(0, 7)})`);
+      } else {
+        setSaveSuccess('Daily Bread has been updated & permanently saved! Previous verse has been archived into reflections history.');
+      }
+
       if (Array.isArray(data.recentReflections)) {
         setRecentReflections(data.recentReflections);
       }
       setTimeout(() => {
         setSaveSuccess(null);
-      }, 5000);
+      }, 6000);
     } catch (err) {
       setSaveError(err.message || 'Failed to update Daily Bread. Please try again.');
     } finally {
@@ -620,6 +677,88 @@ export default function AdminDailyVerse() {
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Permanent Storage & Cloud Sync Card */}
+                <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-primary flex items-center gap-2">
+                        <Sparkles size={16} className="text-secondary" />
+                        Permanent Cloud Sync & Codebase Persistence
+                      </h3>
+                      <p className="text-xs text-on-surface-variant mt-1">
+                        All changes are automatically saved to server memory, local disk, and temporary cloud storage.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleCopyJson}
+                        className="px-3.5 py-1.5 bg-surface-container hover:bg-surface-container-high text-primary border border-outline-variant rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        {copyJsonSuccess ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                        <span>{copyJsonSuccess ? 'Copied JSON!' : 'Copy JSON'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleExportJson}
+                        className="px-3.5 py-1.5 bg-surface-container hover:bg-surface-container-high text-primary border border-outline-variant rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <span>📥 Export dailyVerse.json</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowGitSyncSettings(!showGitSyncSettings)}
+                        className={`px-3.5 py-1.5 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          githubToken 
+                            ? 'bg-green-50 text-green-800 border-green-300' 
+                            : 'bg-surface-container text-primary border-outline-variant'
+                        }`}
+                      >
+                        <Key size={14} />
+                        <span>{githubToken ? 'GitHub Token Linked' : 'Link GitHub Token'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {showGitSyncSettings && (
+                    <div className="mt-4 pt-4 border-t border-outline-variant/30 text-left space-y-3 animate-fade-in">
+                      <p className="text-xs text-on-surface-variant">
+                        To commit changes directly to the <strong>Dinesh-babu-19/Zionix</strong> GitHub repository so they remain permanent forever across every Vercel redeployment, enter your GitHub Personal Access Token (PAT) with <code>repo</code> scope below:
+                      </p>
+                      <div className="flex gap-2">
+                        <input
+                          type="password"
+                          value={githubToken}
+                          onChange={(e) => {
+                            setGithubToken(e.target.value);
+                            localStorage.setItem('zionix_github_token', e.target.value);
+                          }}
+                          placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                          className="flex-1 px-4 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono focus:outline-none focus:border-primary"
+                        />
+                        {githubToken && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setGithubToken('');
+                              localStorage.removeItem('zionix_github_token');
+                            }}
+                            className="px-3 py-2 text-xs text-error hover:bg-error/10 rounded-lg font-semibold"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-on-surface-variant/70 block">
+                        🔒 Token is stored locally in your browser and used only to commit <code>dailyVerse.json</code> when you click Publish.
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bottom Action Toolbar */}

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
@@ -37,11 +38,26 @@ try {
 
 const memoryCache = new Map();
 
-// Helper function to read data files
+// Helper function to read data files (checks memoryCache -> /tmp -> bundled project files)
 const readDataFile = (filename) => {
   if (memoryCache.has(filename)) {
     return memoryCache.get(filename);
   }
+
+  // 1. Check OS temp directory first (persists across warm serverless requests on Vercel)
+  try {
+    const tmpPath = path.join(os.tmpdir(), `zionix_${filename}`);
+    if (fs.existsSync(tmpPath)) {
+      const tmpData = fs.readFileSync(tmpPath, 'utf8');
+      const parsed = JSON.parse(tmpData);
+      memoryCache.set(filename, parsed);
+      return parsed;
+    }
+  } catch (err) {
+    // Fallback to local files
+  }
+
+  // 2. Check project bundled data directory
   const filePath = path.join(__dirname, 'data', filename);
   try {
     if (!fs.existsSync(filePath)) return null;
@@ -55,19 +71,82 @@ const readDataFile = (filename) => {
   }
 };
 
-// Helper function to write data files
+// Helper function to write data files (writes to memoryCache + local disk + /tmp)
 const writeDataFile = (filename, data) => {
   memoryCache.set(filename, data);
-  const filePath = path.join(__dirname, 'data', filename);
+
+  // 1. Write to local project directory (succeeds in local development & persistent environments)
+  const localPath = path.join(__dirname, 'data', filename);
   try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-    return true;
-  } catch (error) {
-    // In serverless read-only environments (like Vercel lambda), disk writes may fail, but memoryCache preserves data
-    console.warn(`Note: Could not write to disk (${error.message}). Cached in memory.`);
-    return true;
+    fs.writeFileSync(localPath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    // Read-only serverless filesystem expected on Vercel
   }
+
+  // 2. Write to OS temp directory (always writable on Vercel /tmp)
+  try {
+    const tmpPath = path.join(os.tmpdir(), `zionix_${filename}`);
+    fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (tmpErr) {
+    console.warn(`Could not write to tmpdir for ${filename}:`, tmpErr.message);
+  }
+
+  return true;
 };
+
+// Helper to commit file permanently to GitHub repository (Permanent Cloud Persistence)
+async function commitFileToGitHub(filePathInRepo, contentObj, commitMessage, token) {
+  if (!token) return { success: false, reason: 'No GitHub token provided' };
+  const owner = 'Dinesh-babu-19';
+  const repo = 'Zionix';
+  const branch = 'main';
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePathInRepo}`;
+
+  try {
+    let sha = null;
+    const getResp = await fetch(`${url}?ref=${branch}`, {
+      headers: {
+        'Authorization': `Bearer ${token.trim()}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'Zionix-Admin-Sync'
+      }
+    });
+
+    if (getResp.ok) {
+      const meta = await getResp.json();
+      sha = meta.sha;
+    }
+
+    const contentBase64 = Buffer.from(JSON.stringify(contentObj, null, 2), 'utf8').toString('base64');
+    const body = {
+      message: commitMessage,
+      content: contentBase64,
+      branch
+    };
+    if (sha) body.sha = sha;
+
+    const putResp = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token.trim()}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Zionix-Admin-Sync'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (putResp.ok) {
+      const putData = await putResp.json();
+      return { success: true, commitSha: putData.commit?.sha };
+    } else {
+      const err = await putResp.json().catch(() => ({}));
+      return { success: false, reason: err.message || 'GitHub API error' };
+    }
+  } catch (e) {
+    return { success: false, reason: e.message };
+  }
+}
 
 // Helper to create mail transporter
 const createMailTransporter = () => {
@@ -323,7 +402,7 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
 
         <!-- Read on Site CTA -->
         <div style="text-align: center; margin-top: 28px;">
-          <a href="http://localhost:5173/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 13px 32px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+          <a href="https://zionix-nine.vercel.app/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 13px 32px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
             Read & Listen on Zionix →
           </a>
         </div>
@@ -350,6 +429,31 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
     console.log(`[Daily Verse Broadcast] No changes detected in Daily Bread. Skipping broadcast to avoid duplicate emails.`);
   }
 
+  // Permanent GitHub Commit Sync (commits changes directly to git repo if GITHUB_TOKEN is available)
+  const githubToken = req.headers['x-github-token'] || process.env.GITHUB_TOKEN;
+  let githubSyncResult = null;
+  if (githubToken) {
+    try {
+      githubSyncResult = await commitFileToGitHub(
+        'backend/data/dailyVerse.json',
+        newDailyVerse,
+        `feat(daily-bread): Update verse to ${newDailyVerse.reference} via Admin Portal`,
+        githubToken
+      );
+      if (githubSyncResult && githubSyncResult.success) {
+        console.log(`[GitHub Permanent Sync] Committed dailyVerse.json to repo: ${githubSyncResult.commitSha}`);
+        await commitFileToGitHub(
+          'backend/data/recentReflections.json',
+          recentReflections,
+          `chore(daily-bread): Archive previous reflections via Admin Portal`,
+          githubToken
+        );
+      }
+    } catch (err) {
+      console.warn(`[GitHub Permanent Sync] Error:`, err.message);
+    }
+  }
+
   res.json({
     success: true,
     message: hasChanged 
@@ -357,7 +461,8 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
       : 'Daily Bread saved. No content changes detected, email broadcast skipped.',
     dailyVerse: newDailyVerse,
     recentReflections: formattedReflections,
-    notifiedUsersCount: notifiedCount
+    notifiedUsersCount: notifiedCount,
+    githubSync: githubSyncResult
   });
 });
 

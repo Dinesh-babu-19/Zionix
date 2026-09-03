@@ -30,11 +30,36 @@ export default function DailyVerse() {
     fetch('/api/daily-verse')
       .then(res => res.json())
       .then(verseData => {
+        // If localStorage has an admin-published update with a newer updatedAt, preserve it
+        const localSaved = localStorage.getItem('zionix_custom_daily_verse');
+        if (localSaved) {
+          try {
+            const parsed = JSON.parse(localSaved);
+            if (parsed && parsed.updatedAt && verseData && verseData.updatedAt) {
+              if (new Date(parsed.updatedAt).getTime() > new Date(verseData.updatedAt).getTime()) {
+                setData({
+                  ...parsed,
+                  recentReflections: verseData.recentReflections || parsed.recentReflections || []
+                });
+                setLoading(false);
+                return;
+              }
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
         setData(verseData);
         setLoading(false);
       })
       .catch(err => {
         console.error('Error fetching daily verse:', err);
+        const localSaved = localStorage.getItem('zionix_custom_daily_verse');
+        if (localSaved) {
+          try {
+            setData(JSON.parse(localSaved));
+          } catch (e) {}
+        }
         setLoading(false);
       });
   }, []);
