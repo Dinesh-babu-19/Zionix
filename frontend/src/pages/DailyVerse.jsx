@@ -23,6 +23,7 @@ export default function DailyVerse() {
   const [copiedBtn, setCopiedBtn] = useState(null);
   const [selectedPastReflection, setSelectedPastReflection] = useState(null);
   const [instagramModalOpen, setInstagramModalOpen] = useState(false);
+  const [cardFlash, setCardFlash] = useState(false);
   const [shareToast, setShareToast] = useState(null);
 
   useEffect(() => {
@@ -78,25 +79,9 @@ export default function DailyVerse() {
       showShareToast('Opening X (Twitter) with your Daily Bread post!');
       setTimeout(() => setCopiedBtn(null), 3000);
     } else if (platform === 'instagram') {
-      // If mobile browser supports direct native share sheet
-      if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
-        try {
-          await navigator.share({
-            title: `Daily Bread - ${data.reference}`,
-            text: `${verseQuote}\n\nRead more at:`,
-            url: pageUrl
-          });
-          setCopiedBtn('instagram');
-          showShareToast('Shared successfully!');
-          setTimeout(() => setCopiedBtn(null), 3000);
-          return;
-        } catch {
-          // fallback to modal
-        }
-      }
       setInstagramModalOpen(true);
       setCopiedBtn('instagram');
-      showShareToast('Scripture copied to clipboard! Ready for your Story.');
+      showShareToast('Scripture copied! Screenshot the card for your Story.');
       setTimeout(() => setCopiedBtn(null), 3000);
     } else if (platform === 'copy') {
       setCopiedBtn('copy');
@@ -382,7 +367,7 @@ export default function DailyVerse() {
             </div>
 
             {/* Story Card Mockup */}
-            <div className="my-5 p-6 rounded-2xl bg-gradient-to-br from-[#041534] to-[#1b2a4a] text-white text-center shadow-lg relative overflow-hidden">
+            <div className={`my-5 p-6 rounded-2xl bg-gradient-to-br from-[#041534] to-[#1b2a4a] text-white text-center shadow-lg relative overflow-hidden transition-all duration-300 ${cardFlash ? 'ring-4 ring-white brightness-125 scale-[1.01]' : ''}`}>
               <div className="absolute top-3 right-3 text-[10px] font-bold tracking-widest uppercase text-white/50 font-label-caps">
                 Zionix Daily
               </div>
@@ -401,11 +386,12 @@ export default function DailyVerse() {
               <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/40 text-xs text-on-surface-variant space-y-1">
                 <p className="font-semibold text-primary">📱 How to Share on Instagram:</p>
                 <p>1. The scripture and Zionix link have been copied to your clipboard.</p>
-                <p>2. Screenshot the card above or paste into your Story text sticker!</p>
+                <p>2. Take a screenshot of the verse card above to post directly to your Story!</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
+                  type="button"
                   onClick={() => {
                     navigator.clipboard.writeText(`"${data.verse}" — ${data.reference}\n\nRead daily bread on: ${window.location.origin}/verse`);
                     showShareToast('Caption copied again!');
@@ -415,14 +401,17 @@ export default function DailyVerse() {
                   <Copy size={14} /> Copy Caption
                 </button>
 
-                <a
-                  href="https://www.instagram.com/"
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCardFlash(true);
+                    setTimeout(() => setCardFlash(false), 500);
+                    showShareToast('📸 Take a screenshot of the card above!');
+                  }}
                   className="py-3 px-4 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-95 text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer text-center"
                 >
-                  <ExternalLink size={14} /> Open Instagram
-                </a>
+                  <Camera size={14} /> Take Screenshot
+                </button>
               </div>
             </div>
           </div>
