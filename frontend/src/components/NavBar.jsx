@@ -28,8 +28,8 @@ export default function NavBar() {
     }
   };
 
-  const activeStyle = "font-label-caps text-label-caps uppercase tracking-widest text-secondary border-b-2 border-secondary pb-1 cursor-pointer transition-all active:scale-95";
-  const inactiveStyle = "font-label-caps text-label-caps uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95";
+  const activeStyle = "font-label-caps text-label-caps text-[11px] lg:text-xs uppercase tracking-wider lg:tracking-widest text-secondary border-b-2 border-secondary pb-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap";
+  const inactiveStyle = "font-label-caps text-label-caps text-[11px] lg:text-xs uppercase tracking-wider lg:tracking-widest text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95 whitespace-nowrap";
 
   return (
     <header className="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-md border-b border-outline-variant/30">
@@ -37,7 +37,7 @@ export default function NavBar() {
         <Link 
           to="/" 
           onClick={() => handleNavLinkClick('/')}
-          className="flex items-center gap-2.5 group"
+          className="flex items-center gap-2.5 group shrink-0"
         >
           <img 
             src="/logo.png" 
@@ -53,8 +53,8 @@ export default function NavBar() {
           </span>
         </Link>
         
-        {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-x-8">
+        {/* Desktop / Tablet Nav Links */}
+        <div className="hidden md:flex items-center md:gap-x-4 lg:gap-x-7">
           <NavLink 
             to="/prayer-wall" 
             onClick={() => handleNavLinkClick('/prayer-wall')}

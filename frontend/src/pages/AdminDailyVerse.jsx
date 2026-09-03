@@ -446,11 +446,11 @@ export default function AdminDailyVerse() {
 
         {/* Tab Switcher */}
         <div className="flex items-center justify-between border-b border-outline-variant/40 pb-4 mb-8 flex-wrap gap-4">
-          <div className="flex items-center gap-2 bg-surface-container-low p-1 rounded-xl border border-outline-variant/40">
+          <div className="flex items-center gap-2 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/40 overflow-x-auto no-scrollbar max-w-full">
             <button
               type="button"
               onClick={() => setActiveTab('editor')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'editor' 
                   ? 'bg-primary text-white shadow-sm' 
                   : 'text-on-surface-variant hover:text-primary'
@@ -462,7 +462,7 @@ export default function AdminDailyVerse() {
             <button
               type="button"
               onClick={() => setActiveTab('preview')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'preview' 
                   ? 'bg-primary text-white shadow-sm' 
                   : 'text-on-surface-variant hover:text-primary'
@@ -474,7 +474,7 @@ export default function AdminDailyVerse() {
             <button
               type="button"
               onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'history' 
                   ? 'bg-primary text-white shadow-sm' 
                   : 'text-on-surface-variant hover:text-primary'
@@ -486,7 +486,7 @@ export default function AdminDailyVerse() {
             <button
               type="button"
               onClick={() => setActiveTab('prayers')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'prayers' 
                   ? 'bg-primary text-white shadow-sm' 
                   : 'text-on-surface-variant hover:text-primary'
@@ -498,14 +498,14 @@ export default function AdminDailyVerse() {
             <button
               type="button"
               onClick={() => setActiveTab('users')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'users' 
                   ? 'bg-primary text-white shadow-sm' 
                   : 'text-on-surface-variant hover:text-primary'
               }`}
             >
               <Users size={14} />
-              Believers & Subscribers ({registeredUsers.length})
+              Believers ({registeredUsers.length})
             </button>
           </div>
 

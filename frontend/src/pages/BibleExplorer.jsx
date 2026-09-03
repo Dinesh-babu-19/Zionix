@@ -720,11 +720,28 @@ export default function BibleExplorer() {
                 <img 
                   src="/logo.png" 
                   alt="Zionix Logo" 
-                  className="h-6 w-auto mix-blend-multiply dark:invert dark:mix-blend-screen" 
+                  className="h-6 w-auto mix-blend-multiply dark:invert dark:mix-blend-screen shrink-0" 
                 />
-                <span className="font-headline-sm text-sm md:text-base font-semibold text-primary dark:text-primary-fixed tracking-wide whitespace-nowrap">
+                <span className="hidden sm:inline font-headline-sm text-sm md:text-base font-semibold text-primary dark:text-primary-fixed tracking-wide whitespace-nowrap">
                   Zionix Bible
                 </span>
+
+                {/* Mobile / Tablet Book & Chapter Quick Selector */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileBooksDrawerOpen(true);
+                    setViewingChaptersForBook(null);
+                  }}
+                  className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 bg-surface-container-low dark:bg-zinc-800 hover:bg-surface-container border border-outline-variant/60 rounded-full text-xs font-bold text-primary transition-all active:scale-95 shadow-sm"
+                  title="Choose Bible Book and Chapter"
+                >
+                  <BookOpen size={13} className="text-secondary shrink-0" />
+                  <span className="truncate max-w-[110px] sm:max-w-[150px]">
+                    {BIBLE_BOOKS_MAP[selectedBook]?.name || selectedBook} {selectedChapter}
+                  </span>
+                  <ChevronDown size={11} className="opacity-60 shrink-0" />
+                </button>
               </div>
               
               {/* Desktop-only Search input */}
@@ -840,7 +857,7 @@ export default function BibleExplorer() {
         </header>
 
         {/* Scrollable Bible Panel */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-margin-mobile md:px-stack-lg py-stack-md">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-margin-mobile md:px-stack-lg py-stack-md pb-28 md:pb-12">
           <div className="max-w-2xl mx-auto">
             
             {/* 1. READ VIEW */}
@@ -1012,6 +1029,42 @@ export default function BibleExplorer() {
                             </ul>
                           </div>
                         )}
+                      </div>
+
+                      {/* Chapter Navigation Toolbar (Responsive on Mobile, Tablet & Desktop) */}
+                      <div className="mt-10 pt-6 border-t border-outline-variant/40 flex items-center justify-between gap-3 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={handlePrevChapter}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-surface-container-low hover:bg-surface-container dark:bg-zinc-900 border border-outline-variant/60 rounded-xl text-xs font-bold text-primary transition-all active:scale-95 cursor-pointer shadow-sm"
+                          title="Navigate to Previous Chapter"
+                        >
+                          <ChevronLeft size={16} />
+                          <span className="hidden min-[420px]:inline">Previous Chapter</span>
+                          <span className="min-[420px]:hidden">Prev</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileBooksDrawerOpen(true);
+                            setViewingChaptersForBook(selectedBook);
+                          }}
+                          className="px-3.5 py-2 bg-secondary/10 text-secondary hover:bg-secondary/20 rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer"
+                        >
+                          Ch. {selectedChapter} of {BIBLE_BOOKS_MAP[selectedBook]?.chapters || 1}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleNextChapter}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-sm ml-auto"
+                          title="Navigate to Next Chapter"
+                        >
+                          <span className="hidden min-[420px]:inline">Next Chapter</span>
+                          <span className="min-[420px]:hidden">Next</span>
+                          <ChevronRight size={16} />
+                        </button>
                       </div>
                     </article>
                   </>
@@ -1201,8 +1254,8 @@ export default function BibleExplorer() {
       {/* Mobile Drawer for Books List */}
       {mobileBooksDrawerOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileBooksDrawerOpen(false)} />
-          <div className="relative bg-white dark:bg-zinc-900 w-72 h-full flex flex-col p-6 shadow-2xl animate-slide-in overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileBooksDrawerOpen(false)} />
+          <div className="relative bg-white dark:bg-zinc-900 w-[85vw] max-w-sm h-full flex flex-col p-5 sm:p-6 shadow-2xl animate-slide-in overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-headline-sm text-lg text-primary">Books of the Bible</h3>
               <button 
