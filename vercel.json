@@ -1,8 +1,16 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
     "frontend": {
       "root": "frontend",
-      "framework": "vite"
+      "framework": "vite",
+      "outputDirectory": "dist",
+      "rewrites": [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ]
     },
     "backend": {
       "root": "backend",
@@ -13,30 +21,13 @@
     {
       "source": "/api/(.*)",
       "destination": {
-        "type": "service",
         "service": "backend"
-      }
-    },
-    {
-      "source": "/assets/(.*)",
-      "destination": {
-        "type": "service",
-        "service": "frontend"
-      }
-    },
-    {
-      "source": "/(favicon.*|logo.*|icons.*|robots.txt|sitemap.xml)",
-      "destination": {
-        "type": "service",
-        "service": "frontend"
       }
     },
     {
       "source": "/(.*)",
       "destination": {
-        "type": "service",
-        "service": "frontend",
-        "path": "/index.html"
+        "service": "frontend"
       }
     }
   ]

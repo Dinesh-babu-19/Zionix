@@ -34,6 +34,10 @@ function App() {
 
           {/* Full-Screen Bible Explorer */}
           <Route path="/bible" element={<BibleExplorer />} />
+          <Route path="/holybible" element={<BibleExplorer />} />
+          <Route path="/holy-bible" element={<BibleExplorer />} />
+          <Route path="/daily-verse" element={<Navigate to="/verse" replace />} />
+          <Route path="/dailyverse" element={<Navigate to="/verse" replace />} />
 
           {/* Fallback to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />
