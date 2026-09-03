@@ -123,19 +123,23 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Visual Anchor (Landscape wheat field) */}
+      {/* Visual Anchor (Landscape wheat field with high contrast readable text overlay) */}
       <section ref={addToRefs} className="h-[480px] relative overflow-hidden mb-12">
         <img 
           alt="Serene landscape wheat field" 
           className="w-full h-full object-cover" 
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5KaYcdmjdrcFHQyW-DTnDa2-y4sMYrfzj8XuwlN6C1-WiXuPGuR059YeEp7MHlXyIyweIINdO-n-jGudQaVrSGVZ01orbrS-7fCV5SDOWecVYBzJMwqavRQU49qO8cDXu41xEue6e6DT7XunI3462ArYZa-UtqivP0ioyMq-TqPOJZI6tmEFynMqICxmsZrrBKTD_35cUSUID77dV9GFfw709_rvPcfKnu3sJkSMCeqAzEmbvSPlXUBn5YNkFYDWL4QG4bcx6f8A"
         />
-        <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-          <div className="text-center text-white max-w-xl px-margin-mobile">
-            <h2 className="font-display-lg text-display-lg-mobile md:text-headline-md mb-stack-sm text-white drop-shadow-sm font-semibold">
+        {/* Dark contrast gradient overlay & glass card so text is 100% visible and readable */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#041534]/90 via-[#041534]/65 to-[#041534]/60 flex items-center justify-center p-4">
+          <div className="text-center max-w-2xl mx-auto px-6 py-8 sm:px-10 sm:py-10 bg-[#041534]/80 backdrop-blur-md border border-white/20 rounded-3xl shadow-2xl">
+            <span className="font-label-caps text-xs uppercase tracking-[0.25em] text-[#fed977] font-bold mb-3 block">
+              Timeless Beacon of Hope
+            </span>
+            <h2 className="font-display-lg text-2xl sm:text-3xl md:text-4xl text-white font-bold tracking-tight mb-3 drop-shadow-md">
               A Lighthouse in the Digital Age
             </h2>
-            <p className="font-body-lg text-sm text-white/90">
+            <p className="font-body-lg text-sm sm:text-base text-white/95 max-w-lg mx-auto leading-relaxed">
               Spreading the immutable truth of the Gospel to every corner of the world.
             </p>
           </div>
@@ -148,47 +152,51 @@ export default function Home() {
       <section ref={addToRefs} className="py-12 md:py-16 px-6 bg-gradient-heaven">
         <div className="max-w-3xl mx-auto text-center">
           <Sparkles className="w-8 h-8 text-accent mx-auto mb-6 animate-float-soft" />
-          <blockquote className="font-verse-quote text-2xl md:text-3xl leading-relaxed text-on-surface mb-6">
-            "I am the way and the truth and the life. No one comes to the Father except through Me."
+          <p className="font-label-caps text-xs uppercase tracking-widest text-primary font-bold mb-4">THE WORD OF LIFE</p>
+          <blockquote className="font-headline-md text-3xl md:text-4xl text-primary leading-snug mb-6">
+            "I am the way, and the truth, and the life. No one comes to the Father except through me."
           </blockquote>
-          <cite className="text-primary font-label-caps text-sm not-italic tracking-widest">— JOHN 14:6</cite>
+          <cite className="font-label-caps text-sm text-secondary font-bold not-italic tracking-wider">— JOHN 14:6</cite>
         </div>
       </section>
 
       {/* Attached Section 2: Three pillars */}
       <section ref={addToRefs} className="py-12 md:py-16 px-6 bg-background">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-headline-md text-4xl md:text-5xl text-primary mb-4">A Light for Every Soul</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto text-sm">Three eternal truths the Lord offers freely to all who come to Him.</p>
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+          <div className="p-8 rounded-2xl bg-surface-container-low border border-outline-variant/40 hover:border-secondary/50 transition-all text-left group">
+            <span className="text-3xl mb-4 block group-hover:scale-110 transition-transform">🕊️</span>
+            <h3 className="font-headline-sm text-xl font-bold text-primary mb-2">Grace Unearned</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">Salvation is not achieved through human striving, but received as a free gift of God through Jesus Christ.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { icon: Heart, title: "Boundless Love", text: "While we were still sinners, Christ died for us. His love is not earned — it is given." },
-              { icon: BookOpen, title: "Living Word", text: "The Scriptures are God speaking to you today, breathing hope into every weary heart." },
-              { icon: Sparkles, title: "New Life", text: "If anyone is in Christ, the new creation has come. The old has gone, the new is here." },
-            ].map((p) => (
-              <div key={p.title} className="group p-8 rounded-2xl bg-card border border-border/60 shadow-soft hover:shadow-divine transition-all duration-300 hover:-translate-y-1 text-left">
-                <div className="w-12 h-12 rounded-xl bg-gradient-divine flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-sm">
-                  <p.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-headline-sm text-2xl mb-3 text-primary">{p.title}</h3>
-                <p className="text-muted-foreground leading-relaxed text-sm">{p.text}</p>
-              </div>
-            ))}
+          <div className="p-8 rounded-2xl bg-surface-container-low border border-outline-variant/40 hover:border-secondary/50 transition-all text-left group">
+            <span className="text-3xl mb-4 block group-hover:scale-110 transition-transform">📖</span>
+            <h3 className="font-headline-sm text-xl font-bold text-primary mb-2">Truth Unchanging</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">The Scriptures stand firm across millennia — an unshakeable foundation in an age of shifting opinions.</p>
+          </div>
+          <div className="p-8 rounded-2xl bg-surface-container-low border border-outline-variant/40 hover:border-secondary/50 transition-all text-left group">
+            <span className="text-3xl mb-4 block group-hover:scale-110 transition-transform">⚓</span>
+            <h3 className="font-headline-sm text-xl font-bold text-primary mb-2">Hope Unshakable</h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">Anchored in the resurrection, our hope transcends circumstance, giving lasting peace today and for eternity.</p>
           </div>
         </div>
       </section>
 
-      {/* Attached Section 3: Image + verse split */}
+      {/* Attached Section 3: Image + verse split (Uncropped Good Shepherd) */}
       <section ref={addToRefs} className="py-12 md:py-16 px-6 bg-card/40 border-y border-outline-variant/20">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <div className="relative rounded-3xl overflow-hidden shadow-divine h-96">
-            <img src={shepherdImg} alt="Jesus the Good Shepherd carrying a lamb" loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="flex items-center justify-center p-2">
+            <img 
+              src={shepherdImg} 
+              alt="Jesus the Good Shepherd carrying a lamb" 
+              loading="lazy" 
+              className="w-full max-w-md md:max-w-full h-auto object-contain rounded-3xl shadow-divine transition-transform duration-500 hover:scale-[1.01]" 
+            />
           </div>
           <div className="text-left">
-            <p className="text-primary font-label-caps text-xs tracking-widest mb-3">THE GOOD SHEPHERD</p>
-            <h2 className="font-headline-md text-4xl md:text-5xl text-primary mb-6 leading-tight">He knows your name, and He calls you His own.</h2>
+            <p className="text-primary font-label-caps text-xs tracking-widest mb-3 font-bold">THE GOOD SHEPHERD</p>
+            <h2 className="font-headline-md text-3xl sm:text-4xl md:text-5xl text-primary mb-6 leading-tight font-bold">
+              He knows your name, and He calls you His own.
+            </h2>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               Jesus said: "I am the good shepherd. I know My sheep and My sheep know Me." He searches the wilderness for the one who is lost — and rejoices when they are found.
             </p>

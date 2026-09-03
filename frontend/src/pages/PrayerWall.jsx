@@ -228,7 +228,7 @@ export default function PrayerWall() {
                     <label className="block font-label-caps text-xs uppercase tracking-wider text-primary font-bold mb-2.5">
                       Prayer Category
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                       {PRAYER_CATEGORIES.map((cat) => {
                         const isSelected = category === cat.id;
                         return (
@@ -236,14 +236,14 @@ export default function PrayerWall() {
                             key={cat.id}
                             type="button"
                             onClick={() => setCategory(cat.id)}
-                            className={`p-3 rounded-xl border-2 flex items-center gap-2.5 transition-all cursor-pointer text-left ${
+                            className={`p-2.5 sm:p-3 min-h-[58px] rounded-xl border-2 flex items-center gap-2 transition-all cursor-pointer text-left overflow-hidden ${
                               isSelected
                                 ? 'bg-primary border-primary text-white shadow-md font-bold ring-2 ring-primary/20'
                                 : 'bg-white dark:bg-zinc-800 border-outline-variant hover:border-primary/50 text-primary dark:text-zinc-100 font-bold hover:bg-surface-container-low'
                             }`}
                           >
-                            <span className="text-lg shrink-0">{cat.icon}</span>
-                            <span className={`text-xs font-bold leading-tight flex-1 break-words ${
+                            <span className="text-base sm:text-lg shrink-0">{cat.icon}</span>
+                            <span className={`text-[11px] sm:text-xs font-bold leading-snug flex-1 break-words ${
                               isSelected ? 'text-white' : 'text-primary dark:text-zinc-100'
                             }`}>
                               {cat.label}
