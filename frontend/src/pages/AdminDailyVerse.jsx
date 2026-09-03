@@ -50,6 +50,42 @@ export default function AdminDailyVerse() {
   const [saveError, setSaveError] = useState('');
   const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'preview' | 'history' | 'prayers'
 
+  // Format prayer request time accurately according to local timezone
+  const formatRequestDate = (req) => {
+    if (!req) return 'Recently';
+
+    if (req.submittedAt) {
+      const d = new Date(req.submittedAt);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+    }
+
+    if (req.id && typeof req.id === 'string' && req.id.startsWith('prayer-')) {
+      const ts = parseInt(req.id.replace('prayer-', ''), 10);
+      if (!isNaN(ts) && ts > 1000000000000) {
+        const d = new Date(ts);
+        return d.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+    }
+
+    return req.formattedDate || 'Recently';
+  };
+
   // Fetch current daily verse & prayer requests if authenticated
   const loadAdminData = () => {
     if (!authToken) return;
@@ -810,7 +846,7 @@ export default function AdminDailyVerse() {
                               <div>
                                 <h3 className="font-bold text-primary text-base flex items-center gap-2">
                                   {req.name}
-                                  <span className="text-[11px] font-semibold text-secondary bg-secondary/10 px-2.5 py-0.5 rounded-full">
+                                  <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
                                     {req.category || 'General Prayer'}
                                   </span>
                                 </h3>
@@ -821,8 +857,8 @@ export default function AdminDailyVerse() {
                             </div>
 
                             <div className="text-right text-xs">
-                              <span className="text-[11px] text-on-surface-variant/70 font-mono block">
-                                {req.formattedDate || req.submittedAt || 'Recently'}
+                              <span className="text-[11px] text-primary/80 font-mono font-semibold block">
+                                {formatRequestDate(req)}
                               </span>
                               {req.isPrivate ? (
                                 <span className="inline-block mt-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full uppercase">

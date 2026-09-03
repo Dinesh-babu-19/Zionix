@@ -225,25 +225,32 @@ export default function PrayerWall() {
 
                   {/* Prayer Category */}
                   <div>
-                    <label className="block font-label-caps text-xs uppercase tracking-wider text-primary font-bold mb-2">
+                    <label className="block font-label-caps text-xs uppercase tracking-wider text-primary font-bold mb-2.5">
                       Prayer Category
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      {PRAYER_CATEGORIES.map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setCategory(cat.id)}
-                          className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer text-left ${
-                            category === cat.id
-                              ? 'bg-secondary/15 border-secondary text-secondary shadow-sm font-bold'
-                              : 'bg-surface border-outline-variant/50 text-on-surface-variant hover:border-outline'
-                          }`}
-                        >
-                          <span className="text-sm">{cat.icon}</span>
-                          <span className="truncate">{cat.label}</span>
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {PRAYER_CATEGORIES.map((cat) => {
+                        const isSelected = category === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setCategory(cat.id)}
+                            className={`p-3 rounded-xl border-2 flex items-center gap-2.5 transition-all cursor-pointer text-left ${
+                              isSelected
+                                ? 'bg-primary border-primary text-white shadow-md font-bold ring-2 ring-primary/20'
+                                : 'bg-white dark:bg-zinc-800 border-outline-variant hover:border-primary/50 text-primary dark:text-zinc-100 font-bold hover:bg-surface-container-low'
+                            }`}
+                          >
+                            <span className="text-lg shrink-0">{cat.icon}</span>
+                            <span className={`text-xs font-bold leading-tight flex-1 break-words ${
+                              isSelected ? 'text-white' : 'text-primary dark:text-zinc-100'
+                            }`}>
+                              {cat.label}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 

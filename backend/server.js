@@ -555,8 +555,13 @@ app.post('/api/prayer-request', async (req, res) => {
     isPrivate: !!isPrivate,
     submittedAt: new Date().toISOString(),
     formattedDate: new Date().toLocaleString('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
+      timeZone: 'Asia/Kolkata',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
     })
   };
 

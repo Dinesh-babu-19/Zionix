@@ -18,18 +18,13 @@ export default function Footer() {
           </p>
         </div>
         
-        <div className="grid grid-cols-2 gap-x-16 gap-y-4">
-          <div className="flex flex-col gap-2">
-            <span className="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-2 text-xs">Ministry</span>
+        <div className="flex flex-col gap-2">
+          <span className="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-2 text-xs">Ministry</span>
+          <div className="flex flex-wrap md:flex-col gap-x-6 gap-y-2">
             <Link className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" to="/prayer-wall">Prayer Wall</Link>
             <Link className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" to="/gospel">Gospel</Link>
             <Link className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" to="/bible">Holy Bible</Link>
             <Link className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" to="/verse">Daily Verse</Link>
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <span className="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-2 text-xs">Resources</span>
-            <Link className="font-body-md text-body-md text-primary/70 hover:text-primary hover:underline transition-all text-sm" to="/admin">🔐 Developer Admin</Link>
           </div>
         </div>
       </div>
