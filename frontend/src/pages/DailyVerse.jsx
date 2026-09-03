@@ -26,39 +26,6 @@ export default function DailyVerse() {
   const [cardFlash, setCardFlash] = useState(false);
   const [shareToast, setShareToast] = useState(null);
 
-  // Email Subscription State
-  const [subscribeEmail, setSubscribeEmail] = useState('');
-  const [isSubscribing, setIsSubscribing] = useState(false);
-  const [subscribeSuccess, setSubscribeSuccess] = useState('');
-  const [subscribeError, setSubscribeError] = useState('');
-
-  const handleSubscribe = async (e) => {
-    e.preventDefault();
-    if (!subscribeEmail || !subscribeEmail.includes('@')) {
-      setSubscribeError('Please enter a valid email address.');
-      return;
-    }
-    setIsSubscribing(true);
-    setSubscribeError('');
-    try {
-      const res = await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: subscribeEmail.trim() })
-      });
-      const resData = await res.json();
-      if (!res.ok || !resData.success) {
-        throw new Error(resData.error || 'Failed to subscribe');
-      }
-      setSubscribeSuccess('Subscribed! Welcome email sent to your inbox.');
-      setSubscribeEmail('');
-    } catch (err) {
-      setSubscribeError(err.message || 'Subscription failed. Please try again.');
-    } finally {
-      setIsSubscribing(false);
-    }
-  };
-
   useEffect(() => {
     fetch('/api/daily-verse')
       .then(res => res.json())
@@ -344,44 +311,6 @@ export default function DailyVerse() {
                   Past 5 days reflections
                 </a>
               </div>
-            </div>
-
-            {/* Daily Bread Inbox Subscription Card */}
-            <div className="border border-outline-variant/60 p-6 bg-surface-container-lowest rounded-2xl shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="material-symbols-outlined text-secondary text-xl">mark_email_unread</span>
-                <h3 className="font-headline-sm text-base font-bold text-primary">Daily Bread in Your Inbox</h3>
-              </div>
-              <p className="text-xs text-on-surface-variant leading-relaxed mb-4">
-                Join our community of believers. Receive every new Scripture reflection directly in your private email.
-              </p>
-              {subscribeSuccess ? (
-                <div className="p-3 bg-green-50 border border-green-200 text-green-800 rounded-xl text-xs flex items-center gap-2 font-medium">
-                  <CheckCircle2 size={16} className="text-green-600 shrink-0" />
-                  <span>{subscribeSuccess}</span>
-                </div>
-              ) : (
-                <form onSubmit={handleSubscribe} className="space-y-2.5">
-                  <input
-                    type="email"
-                    value={subscribeEmail}
-                    onChange={(e) => setSubscribeEmail(e.target.value)}
-                    placeholder="Enter your Gmail / Email address"
-                    required
-                    className="w-full px-3.5 py-2.5 bg-surface border border-outline-variant rounded-xl text-xs focus:outline-none focus:border-primary text-on-surface"
-                  />
-                  {subscribeError && (
-                    <p className="text-xs text-error font-medium">{subscribeError}</p>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={isSubscribing}
-                    className="w-full py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-sm active:scale-98"
-                  >
-                    {isSubscribing ? 'Subscribing...' : 'Subscribe to Daily Bread'}
-                  </button>
-                </form>
-              )}
             </div>
           </div>
         </div>

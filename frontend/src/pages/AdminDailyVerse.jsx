@@ -20,7 +20,8 @@ import {
   RefreshCw,
   Clock,
   ShieldAlert,
-  Users
+  Users,
+  Copy
 } from 'lucide-react';
 
 export default function AdminDailyVerse() {
@@ -137,16 +138,24 @@ export default function AdminDailyVerse() {
     Promise.all([
       fetch('/api/admin/daily-verse', {
         headers: { 'Authorization': `Bearer ${authToken}` }
-      }).then(res => res.json()),
+      }).then(res => res.json()).catch(() => ({})),
       fetch('/api/admin/prayer-requests', {
         headers: { 'Authorization': `Bearer ${authToken}` }
-      }).then(res => res.json()),
+      }).then(res => res.json()).catch(() => ({})),
       fetch('/api/admin/users', {
         headers: { 'Authorization': `Bearer ${authToken}` }
       }).then(res => res.json()).catch(() => ({ users: [] }))
     ])
       .then(([dailyData, prayerData, usersData]) => {
-        if (dailyData.dailyVerse) {
+        // If token expired, cleanly log out and redirect to login card
+        if (dailyData?.error?.toLowerCase().includes('token') || prayerData?.error?.toLowerCase().includes('token')) {
+          handleSignOut();
+          setLoginError('Your session has expired. Please sign in again.');
+          setIsLoadingData(false);
+          return;
+        }
+
+        if (dailyData?.dailyVerse) {
           setVerse(dailyData.dailyVerse.verse || '');
           setReference(dailyData.dailyVerse.reference || '');
           setTranslation(dailyData.dailyVerse.translation || 'English Standard Version');
@@ -158,10 +167,10 @@ export default function AdminDailyVerse() {
             setAppPoint3(dailyData.dailyVerse.application[2] || '');
           }
         }
-        if (Array.isArray(dailyData.recentReflections)) {
+        if (Array.isArray(dailyData?.recentReflections)) {
           setRecentReflections(dailyData.recentReflections);
         }
-        if (Array.isArray(prayerData.prayerRequests)) {
+        if (Array.isArray(prayerData?.prayerRequests)) {
           setPrayerRequests(prayerData.prayerRequests);
         }
         if (Array.isArray(usersData?.users)) {
