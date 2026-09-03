@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
+import { getCrossReferencesForChapter, BIBLE_BOOKS_ORDER, BIBLE_BOOK_NAMES } from './crossReferences.js';
 
 // Resolve __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -398,15 +399,39 @@ app.get('/api/bible/search', (req, res) => {
   res.json(results);
 });
 
-// Bible Explorer API
-app.get('/api/bible/:book/:chapter', (req, res) => {
+const translationMemoryCache = new Map();
+
+// Helper to clean HTML tags from external Bible text
+function cleanBibleText(text) {
+  if (!text) return '';
+  return text
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<S>\d+<\/S>/gi, '') // Strongs numbers if present
+    .replace(/<sup>.*?<\/sup>/gi, '') // Footnotes
+    .replace(/<[^>]+>/g, '') // Strip remaining html tags
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Clean KJV text from translator brackets {word} -> word, and omit {Heb. ...} margin notes
+function cleanKjvText(text) {
+  if (!text) return '';
+  let cleaned = text.replace(/\{[^}]*?:[^}]*?\}/g, '');
+  cleaned = cleaned.replace(/\{([^}]+)\}/g, '$1');
+  return cleaned.replace(/\s+/g, ' ').trim();
+}
+
+// Bible Explorer API (supports ?translation=KJV|ESV|NIV and cross-references)
+app.get('/api/bible/:book/:chapter', async (req, res) => {
   const { book, chapter } = req.params;
+  const translation = (req.query.translation || 'KJV').toUpperCase();
+  const bookKey = book.toLowerCase();
   
   if (!bibleData) {
     return res.status(500).json({ error: 'Bible data is not loaded on server' });
   }
   
-  const bookData = bibleData[book.toLowerCase()];
+  const bookData = bibleData[bookKey];
   if (!bookData) {
     return res.status(404).json({ error: `Book '${book}' not found` });
   }
@@ -415,8 +440,84 @@ app.get('/api/bible/:book/:chapter', (req, res) => {
   if (!chapterData) {
     return res.status(404).json({ error: `Chapter ${chapter} of Book '${book}' not found` });
   }
-  
-  res.json(chapterData);
+
+  const cacheKey = `${translation}-${bookKey}-${chapter}`;
+  if (translationMemoryCache.has(cacheKey)) {
+    return res.json(translationMemoryCache.get(cacheKey));
+  }
+
+  const bookIndex = BIBLE_BOOKS_ORDER.indexOf(bookKey) + 1;
+
+  // 1. KJV Translation
+  if (translation === 'KJV') {
+    const references = getCrossReferencesForChapter(bookKey, parseInt(chapter, 10));
+    const formattedChapter = {
+      ...chapterData,
+      translation: 'KJV',
+      verses: chapterData.verses.map(v => ({
+        number: v.number,
+        text: cleanKjvText(v.text)
+      })),
+      references
+    };
+    translationMemoryCache.set(cacheKey, formattedChapter);
+    return res.json(formattedChapter);
+  }
+
+  // 2. ESV or NIV Translation
+  if (translation === 'ESV' || translation === 'NIV') {
+    try {
+      const bollsTranslation = translation === 'NIV' ? 'NIV' : 'ESV';
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+
+      const resp = await fetch(`https://bolls.life/get-chapter/${bollsTranslation}/${bookIndex}/${chapter}/`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (resp.ok) {
+        const rawVerses = await resp.json();
+        if (Array.isArray(rawVerses) && rawVerses.length > 0) {
+          const verses = rawVerses.map(v => ({
+            number: v.verse,
+            text: cleanBibleText(v.text)
+          }));
+
+          const references = getCrossReferencesForChapter(bookKey, parseInt(chapter, 10), rawVerses);
+
+          const result = {
+            book: chapterData.book,
+            chapter: parseInt(chapter, 10),
+            testament: chapterData.testament,
+            translation,
+            verses,
+            insights: `${chapterData.book} Chapter ${chapter} (${translation}) — Scripture text and reflections.`,
+            references
+          };
+
+          translationMemoryCache.set(cacheKey, result);
+          return res.json(result);
+        }
+      }
+    } catch (err) {
+      console.warn(`Could not fetch external translation ${translation} for ${book} ${chapter}:`, err.message);
+    }
+  }
+
+  // Fallback if external fetch failed
+  const fallbackReferences = getCrossReferencesForChapter(bookKey, parseInt(chapter, 10));
+  const fallbackResult = {
+    ...chapterData,
+    translation,
+    verses: chapterData.verses.map(v => ({
+      number: v.number,
+      text: cleanKjvText(v.text)
+    })),
+    references: fallbackReferences
+  };
+  translationMemoryCache.set(cacheKey, fallbackResult);
+  res.json(fallbackResult);
 });
 
 // Gospel Topics API

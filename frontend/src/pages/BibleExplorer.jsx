@@ -131,7 +131,9 @@ export default function BibleExplorer() {
       { book: 'John', chapter: 3, timestamp: new Date().toISOString() }
     ];
   });
-  const [activeTranslation, setActiveTranslation] = useState('KJV');
+  const [activeTranslation, setActiveTranslation] = useState(() => {
+    return localStorage.getItem('bible_translation') || 'KJV';
+  });
   const [translationDropdownOpen, setTranslationDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -140,16 +142,12 @@ export default function BibleExplorer() {
   // Audio State
   const [isSpeaking, setIsSpeaking] = useState(false);
   const synthRef = useRef(window.speechSynthesis);
+  const translationCacheRef = useRef(new Map());
   
   // UI Settings State (Always Light Mode by default for every new user)
   const [textSize, setTextSize] = useState(() => localStorage.getItem('bible_text_size') || 'medium');
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('bible_theme');
-    // Ensure every new user starts in clean Light Mode
-    return saved === 'dark';
-  });
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [showSignInModal, setShowSignInModal] = useState(false);
   
   // Mobile UI States
   const [mobileBooksDrawerOpen, setMobileBooksDrawerOpen] = useState(false);
@@ -165,14 +163,64 @@ export default function BibleExplorer() {
     }
   }, [selectedBook, selectedChapter, activeTab]);
 
-  // Fetch bible data on book/chapter change
+  // Persist translation
   useEffect(() => {
+    localStorage.setItem('bible_translation', activeTranslation);
+  }, [activeTranslation]);
+
+  // Navigate to cross reference
+  const handleNavigateToReference = (refItem) => {
+    if (!refItem) return;
+    
+    if (refItem.book && refItem.chapter) {
+      setSelectedBook(refItem.book);
+      setSelectedChapter(parseInt(refItem.chapter, 10));
+      setActiveTab('read');
+      showToast(`Navigated to ${refItem.reference}`);
+      return;
+    }
+    
+    const refStr = typeof refItem === 'string' ? refItem : refItem.reference;
+    if (!refStr) return;
+    
+    const match = refStr.match(/^([1-3]?\s?[A-Za-z.]+)\s+(\d+)/);
+    if (match) {
+      const rawBook = match[1].replace(/\./g, '').trim().toLowerCase();
+      const chapterNum = parseInt(match[2], 10);
+      
+      const matchedKey = BIBLE_BOOKS_ORDER.find(k => {
+        const bName = BIBLE_BOOKS_MAP[k]?.name.toLowerCase().replace(/\./g, '');
+        return bName === rawBook || bName.startsWith(rawBook) || rawBook.startsWith(bName) || k === rawBook;
+      });
+      
+      if (matchedKey && BIBLE_BOOKS_MAP[matchedKey]) {
+        const maxCh = BIBLE_BOOKS_MAP[matchedKey].chapters;
+        const validCh = Math.min(Math.max(1, chapterNum), maxCh);
+        setSelectedBook(matchedKey);
+        setSelectedChapter(validCh);
+        setActiveTab('read');
+        showToast(`Navigated to ${BIBLE_BOOKS_MAP[matchedKey].name} Chapter ${validCh}`);
+      }
+    }
+  };
+
+  // Fetch bible data on book/chapter/translation change with instant cache
+  useEffect(() => {
+    const apiBook = selectedBook.toLowerCase();
+    const cacheKey = `${activeTranslation}-${apiBook}-${selectedChapter}`;
+
+    // Instant local memory cache lookup
+    if (translationCacheRef.current.has(cacheKey)) {
+      setBibleData(translationCacheRef.current.get(cacheKey));
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
-    const apiBook = selectedBook.toLowerCase();
-    
-    fetch(`/api/bible/${apiBook}/${selectedChapter}`)
+    fetch(`/api/bible/${apiBook}/${selectedChapter}?translation=${activeTranslation}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error('Chapter not available');
@@ -180,6 +228,7 @@ export default function BibleExplorer() {
         return res.json();
       })
       .then((data) => {
+        translationCacheRef.current.set(cacheKey, data);
         setBibleData(data);
         setLoading(false);
         // Add to history
@@ -200,7 +249,7 @@ export default function BibleExplorer() {
         setError(`The selected chapter (${BIBLE_BOOKS_MAP[selectedBook]?.name || selectedBook} ${selectedChapter}) could not be loaded.`);
         setLoading(false);
       });
-  }, [selectedBook, selectedChapter]);
+  }, [selectedBook, selectedChapter, activeTranslation]);
 
   // Handle local storage sync for bookmarks
   useEffect(() => {
@@ -389,31 +438,7 @@ export default function BibleExplorer() {
         </div>
       )}
 
-      {/* Sign In Mockup Modal */}
-      {showSignInModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-zinc-900 border border-outline-variant p-8 rounded-xl max-w-sm w-full mx-4 shadow-2xl relative">
-            <button onClick={() => setShowSignInModal(false)} className="absolute top-4 right-4 text-on-surface-variant hover:text-primary">
-              <X size={20} />
-            </button>
-            <h3 className="font-headline-sm text-headline-sm text-primary mb-2 text-center">Ministry Account</h3>
-            <p className="text-sm text-on-surface-variant text-center mb-6">Sign in to save highlights, sync favorites, and track reading plans.</p>
-            <div className="space-y-4">
-              <input type="email" placeholder="Email Address" className="w-full px-4 py-2 border border-outline-variant rounded focus:outline-none focus:border-secondary dark:bg-zinc-800 text-sm" />
-              <input type="password" placeholder="Password" className="w-full px-4 py-2 border border-outline-variant rounded focus:outline-none focus:border-secondary dark:bg-zinc-800 text-sm" />
-              <button 
-                onClick={() => {
-                  setShowSignInModal(false);
-                  showToast('Signed in successfully! (Demo Mode)');
-                }}
-                className="w-full py-3 bg-primary text-on-primary rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-primary-container active:scale-95 transition-all"
-              >
-                Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* SideNavBar (Desktop) */}
       <aside className="hidden md:flex flex-col p-stack-sm h-screen sticky top-0 w-72 border-r border-outline-variant bg-surface-container-lowest dark:bg-[#181816] transition-all duration-300 ease-in-out">
@@ -757,7 +782,7 @@ export default function BibleExplorer() {
                           onClick={() => {
                             setActiveTranslation(t);
                             setTranslationDropdownOpen(false);
-                            showToast(`Translation switched to ${t} (Note: Full KJV Bible preloaded)`);
+                            showToast(`Switched to ${t} Bible`);
                           }}
                           className={`w-full text-left px-3 py-1.5 text-xs rounded transition-colors ${
                             activeTranslation === t 
@@ -781,14 +806,6 @@ export default function BibleExplorer() {
                   title={isSpeaking ? "Mute audio" : "Listen to scripture"}
                 >
                   {isSpeaking ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                </button>
-
-                {/* Sign In Button (Desktop only) */}
-                <button 
-                  onClick={() => setShowSignInModal(true)}
-                  className="hidden md:block font-label-caps text-label-caps uppercase tracking-widest text-primary hover:text-secondary duration-200 cursor-pointer px-2 text-xs"
-                >
-                  Sign In
                 </button>
               </div>
             </>
@@ -950,9 +967,17 @@ export default function BibleExplorer() {
                             <h4 className="font-label-caps text-[10px] font-bold text-secondary uppercase tracking-[0.15em] mb-2.5">Cross References</h4>
                             <ul className="space-y-2.5">
                               {bibleData.references.map((ref, idx) => (
-                                <li key={idx} className="group p-1.5 rounded transition-colors">
-                                  <span className="block text-xs font-semibold text-primary">{ref.reference}</span>
-                                  <p className="text-xs text-on-surface-variant leading-normal mt-0.5">
+                                <li 
+                                  key={idx} 
+                                  onClick={() => handleNavigateToReference(ref)}
+                                  className="group p-2.5 rounded-lg bg-surface hover:bg-secondary-container/20 border border-outline-variant/30 hover:border-secondary transition-all cursor-pointer"
+                                  title={`Tap to read ${ref.reference}`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="block text-xs font-bold text-primary group-hover:text-secondary transition-colors">{ref.reference}</span>
+                                    <ChevronRight size={13} className="text-on-surface-variant group-hover:text-secondary transition-transform group-hover:translate-x-0.5" />
+                                  </div>
+                                  <p className="text-xs text-on-surface-variant leading-normal mt-1">
                                     {ref.snippet}
                                   </p>
                                 </li>
@@ -1054,17 +1079,6 @@ export default function BibleExplorer() {
                 </div>
 
                 <div className="bg-surface-container-low dark:bg-zinc-900 border border-outline-variant/30 rounded-xl p-6 md:p-8 space-y-8">
-                  {/* Account sign in on mobile settings */}
-                  <div className="md:hidden border-b border-outline-variant/30 pb-6">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-primary mb-3">Ministry Account</h3>
-                    <button 
-                      onClick={() => setShowSignInModal(true)}
-                      className="w-full py-3 bg-primary text-on-primary rounded font-label-caps text-xs uppercase tracking-widest hover:bg-primary-container"
-                    >
-                      Sign In to Account
-                    </button>
-                  </div>
-
                   {/* Font Size Option */}
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-primary mb-3">Scripture Text Size</h3>
@@ -1085,39 +1099,6 @@ export default function BibleExplorer() {
                           {size}
                         </button>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* Dark Mode Option */}
-                  <div>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-primary mb-3">Display Mode</h3>
-                    <div className="flex gap-4">
-                      <button
-                        onClick={() => {
-                          setIsDarkMode(false);
-                          showToast('Light mode active');
-                        }}
-                        className={`flex-1 py-3 px-4 border rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                          !isDarkMode 
-                            ? 'bg-primary text-on-primary border-primary' 
-                            : 'bg-white dark:bg-zinc-800 border-outline-variant hover:bg-surface-container-high'
-                        }`}
-                      >
-                        Light Mode
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsDarkMode(true);
-                          showToast('Dark mode active');
-                        }}
-                        className={`flex-1 py-3 px-4 border rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                          isDarkMode 
-                            ? 'bg-primary text-on-primary border-primary' 
-                            : 'bg-white dark:bg-zinc-800 border-outline-variant hover:bg-surface-container-high'
-                        }`}
-                      >
-                        Dark Mode
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -1167,11 +1148,19 @@ export default function BibleExplorer() {
           {/* Cross Reference Card */}
           <div className="bg-surface dark:bg-zinc-900 border border-outline-variant rounded-xl p-6">
             <h4 className="font-label-caps text-[10px] font-bold text-secondary uppercase tracking-[0.15em] mb-3">Cross References</h4>
-            {bibleData && bibleData.references ? (
+            {bibleData && bibleData.references && bibleData.references.length > 0 ? (
               <ul className="space-y-3">
                 {bibleData.references.map((ref, idx) => (
-                  <li key={idx} className="group cursor-pointer hover:bg-surface-container-low dark:hover:bg-zinc-800 p-2 rounded transition-colors">
-                    <span className="block text-xs font-semibold text-primary">{ref.reference}</span>
+                  <li 
+                    key={idx} 
+                    onClick={() => handleNavigateToReference(ref)}
+                    className="group cursor-pointer hover:bg-surface-container-low dark:hover:bg-zinc-800 p-2.5 rounded-lg border border-transparent hover:border-outline-variant/30 transition-all"
+                    title={`Click to read ${ref.reference}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="block text-xs font-semibold text-primary group-hover:text-secondary transition-colors">{ref.reference}</span>
+                      <ChevronRight size={12} className="text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                     <p className="text-xs text-on-surface-variant line-clamp-1 group-hover:line-clamp-none transition-all duration-300">
                       {ref.snippet}
                     </p>
@@ -1180,22 +1169,9 @@ export default function BibleExplorer() {
               </ul>
             ) : (
               <p className="text-xs text-on-surface-variant leading-relaxed italic">
-                No references available for this section.
+                Loading cross references for this chapter...
               </p>
             )}
-          </div>
-
-          {/* Visual Context Card */}
-          <div className="relative h-48 rounded-xl overflow-hidden border border-outline-variant group">
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent z-10"></div>
-            <img 
-              alt="Ancient scrolls and light" 
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA2karrjwWisKzuh9z3EMJSzoKHfH_Mb9FIOnsnlYNRZ2DU5GBWD49p8dQJvd12NDBmwhahkkG_B0P60iTADcly5TVyZ2E1rE4cIC9i2Lca_r_lRd_zmFniHHL8kp0nXBJmbqr-jAZoasx9SmVav-l_B9RS2a58ikaNbIzMFVmMoiTe7SFeFydmT5lAZSE50EFeJ3fg6mla04WWZ4G2Zx_3qE5s38L45as-dUmnV-v6SnOz6XwmdJFeJl2rahu4ykGyMhde2QVcRY"
-            />
-            <div className="absolute bottom-3 left-3 z-20">
-              <span className="font-label-caps text-white text-[9px] uppercase tracking-widest bg-primary/60 backdrop-blur px-2.5 py-1.5 rounded font-bold">Visual History</span>
-            </div>
           </div>
         </div>
       </aside>
