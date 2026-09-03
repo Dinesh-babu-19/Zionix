@@ -1,10 +1,11 @@
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const location = useLocation();
   const { user, logout, openAuthModal } = useAuth();
 
@@ -94,21 +95,47 @@ export default function NavBar() {
 
         <div className="flex items-center gap-4">
           {user ? (
-            <div className="hidden md:flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-surface-container-low border border-outline-variant/40 px-3.5 py-1.5 rounded-full shadow-sm">
+            <div className="hidden md:block relative">
+              <button 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-2 bg-surface-container-low hover:bg-surface-container border border-outline-variant/40 px-3 py-1.5 rounded-full shadow-sm cursor-pointer transition-all active:scale-95 group focus:outline-none"
+                aria-label="User account menu"
+              >
                 <div className="w-7 h-7 rounded-full bg-gradient-divine text-white flex items-center justify-center font-bold text-xs shadow-inner">
                   {user.avatar || user.name[0]}
                 </div>
                 <span className="text-xs font-semibold font-label-caps text-primary tracking-wide">
                   {user.name.split(' ')[0]}
                 </span>
-              </div>
-              <button 
-                onClick={handleSignOut}
-                className="text-on-surface-variant hover:text-error transition-colors font-label-caps text-label-caps uppercase tracking-widest text-xs font-semibold cursor-pointer"
-              >
-                Sign Out
+                <ChevronDown size={14} className={`text-on-surface-variant transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
               </button>
+
+              {/* User Dropdown with Sign Out */}
+              {isUserMenuOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setIsUserMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-900 border border-outline-variant rounded-2xl shadow-xl p-3 z-50 animate-fade-in text-left">
+                    <div className="px-3 py-2 border-b border-outline-variant/30 mb-2">
+                      <p className="text-xs font-bold text-primary font-label-caps truncate">{user.name}</p>
+                      <p className="text-[11px] text-on-surface-variant truncate mt-0.5">{user.email}</p>
+                    </div>
+                    
+                    <button 
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-error hover:bg-error/10 rounded-xl transition-colors cursor-pointer font-label-caps uppercase tracking-wider"
+                    >
+                      <LogOut size={14} />
+                      Sign Out
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <Link 
@@ -179,8 +206,9 @@ export default function NavBar() {
           {user ? (
             <button 
               onClick={handleSignOut}
-              className="block w-full text-left py-2 text-error font-bold border-t border-outline-variant/20 mt-2"
+              className="flex items-center gap-2 w-full text-left py-2.5 px-1 text-error font-bold border-t border-outline-variant/20 mt-2 font-label-caps text-xs uppercase tracking-wider"
             >
+              <LogOut size={15} />
               Sign Out
             </button>
           ) : (

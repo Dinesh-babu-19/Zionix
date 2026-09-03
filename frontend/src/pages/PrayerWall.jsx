@@ -404,7 +404,7 @@ export default function PrayerWall() {
             {PRAYER_PROMISES.map((item, idx) => (
               <div 
                 key={idx}
-                className="bg-white p-6 rounded-2xl border border-outline-variant/60 shadow-sm hover:shadow-md transition-all hover:border-secondary flex flex-col justify-between"
+                className="bg-white p-6 rounded-2xl border border-outline-variant/60 shadow-sm flex flex-col justify-between"
               >
                 <div>
                   <span className="text-[10px] font-bold text-secondary uppercase tracking-widest bg-secondary/10 px-2.5 py-1 rounded-full inline-block mb-3">

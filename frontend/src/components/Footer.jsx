@@ -18,7 +18,7 @@ export default function Footer() {
           </p>
         </div>
         
-        <div className="grid grid-cols-3 gap-x-16 gap-y-4">
+        <div className="grid grid-cols-2 gap-x-16 gap-y-4">
           <div className="flex flex-col gap-2">
             <span className="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-2 text-xs">Ministry</span>
             <Link className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" to="/prayer-wall">Prayer Wall</Link>
@@ -28,16 +28,8 @@ export default function Footer() {
           </div>
           
           <div className="flex flex-col gap-2">
-            <span className="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-2 text-xs">Legal</span>
-            <a className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" href="#privacy">Privacy Policy</a>
-            <a className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" href="#terms">Terms of Service</a>
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <span className="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-2 text-xs">Connect</span>
-            <a className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" href="#contact">Contact</a>
-            <a className="font-body-md text-body-md text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all text-sm" href="#support">Support</a>
-            <Link className="font-body-md text-body-md text-primary/70 hover:text-primary hover:underline transition-all text-sm mt-1" to="/admin">🔐 Developer Admin</Link>
+            <span className="font-label-caps text-label-caps uppercase tracking-widest text-primary mb-2 text-xs">Resources</span>
+            <Link className="font-body-md text-body-md text-primary/70 hover:text-primary hover:underline transition-all text-sm" to="/admin">🔐 Developer Admin</Link>
           </div>
         </div>
       </div>

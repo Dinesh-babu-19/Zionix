@@ -1116,11 +1116,6 @@ export default function BibleExplorer() {
               <p className="font-body-md text-sm text-on-tertiary-fixed-variant opacity-70">Spreading the Gospel through clarity and reverence.</p>
             </div>
             <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap gap-4 text-xs font-semibold font-label-caps uppercase tracking-wider">
-                <a className="text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all" href="#">Privacy Policy</a>
-                <a className="text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all" href="#">Terms of Service</a>
-                <a className="text-on-tertiary-fixed-variant hover:text-primary hover:underline transition-all" href="#">Contact</a>
-              </div>
               <p className="text-on-tertiary-fixed-variant opacity-50 text-xs">© 2026 Zionix Ministry. All rights reserved.</p>
             </div>
           </div>
