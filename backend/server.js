@@ -521,6 +521,142 @@ async function broadcastDailyVerseToUsers(dailyVerse, additionalUsers = [], reqH
   return deliveryResult;
 }
 
+// Dedicated Helper to send Welcome Email + Today's Daily Bread to any new user who signs in or subscribes
+async function sendNewUserWelcomeEmail(user, isNew = true, reqHeaders = {}) {
+  const transporter = createMailTransporter(reqHeaders);
+  if (!transporter) {
+    console.log('[New User Welcome] Mail transporter not configured. Skipping email delivery.');
+    return { success: false, reason: 'transporter_not_configured' };
+  }
+
+  const senderAddr = getMailSenderAddress(reqHeaders);
+  const currentDaily = readDataFile('dailyVerse.json') || {
+    verse: 'For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.',
+    reference: 'John 3:16',
+    translation: 'English Standard Version',
+    context: 'Spoken by Jesus to Nicodemus during their nighttime conversation regarding being born again.',
+    devotion: 'God’s love is not passive; it gives, redeems, and invites us into everlasting communion with Him.',
+    application: [
+      'Reflect on the unconditional sacrifice of Jesus today.',
+      'Share His love and encouragement with someone in need.',
+      'Rest in the eternal assurance of His grace.'
+    ]
+  };
+
+  const welcomeSubject = isNew
+    ? `🌅 Welcome to Zionix, ${user.name}! Today's Daily Bread: ${currentDaily.reference}`
+    : `🌅 Welcome back, ${user.name}! Today's Daily Bread: ${currentDaily.reference}`;
+
+  const welcomeHtml = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #fcfcfb;">
+      <div style="text-align: center; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+        <h1 style="color: #041534; font-size: 24px; margin: 0; letter-spacing: -0.02em;">🌅 Welcome to Zionix</h1>
+        <p style="color: #755b00; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 4px 0 0 0;">Spiritual Fellowship & Daily Bread</p>
+      </div>
+
+      <div style="padding: 20px 0 12px 0; color: #334155; font-size: 15px; line-height: 1.6;">
+        <p style="margin: 0 0 10px 0;">Grace and peace to you, <strong>${user.name}</strong>!</p>
+        <p style="margin: 0 0 10px 0;">Thank you for signing in to <strong>Zionix</strong>. You have been successfully recorded in our believers directory. Every morning when our ministry publishes a Scripture reflection, you will receive it directly in your private email.</p>
+        <p style="margin: 0;">Here is today's Daily Bread reflection to encourage your soul right now:</p>
+      </div>
+
+      <!-- Scripture Hero Box -->
+      <div style="background-color: #041534; color: #ffffff; padding: 24px; border-radius: 14px; margin-top: 14px; text-align: center; box-shadow: 0 4px 12px rgba(4,21,52,0.15);">
+        <span style="display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #fed977; margin-bottom: 8px;">Verse of the Day</span>
+        <blockquote style="font-size: 18px; font-style: italic; line-height: 1.6; margin: 0 0 12px 0;">
+          "${currentDaily.verse}"
+        </blockquote>
+        <p style="font-size: 14px; font-weight: 700; color: #ffffff; margin: 0;">
+          ${currentDaily.reference} • <span style="font-weight: 400; color: #c5c6cf;">${currentDaily.translation || 'English Standard Version'}</span>
+        </p>
+      </div>
+
+      <!-- Context -->
+      <div style="margin-top: 16px; background-color: #ffffff; padding: 18px; border-radius: 12px; border: 1px solid #eef0f4;">
+        <h3 style="color: #041534; font-size: 14px; margin: 0 0 6px 0; font-weight: 700;">📜 Scripture Context</h3>
+        <p style="color: #45464e; font-size: 13px; line-height: 1.6; margin: 0;">
+          ${currentDaily.context}
+        </p>
+      </div>
+
+      <!-- Morning Devotion -->
+      <div style="margin-top: 14px; background-color: #ffffff; padding: 18px; border-radius: 12px; border: 1px solid #eef0f4;">
+        <h3 style="color: #041534; font-size: 14px; margin: 0 0 6px 0; font-weight: 700;">✨ Morning Reflection</h3>
+        <p style="color: #45464e; font-size: 13px; line-height: 1.6; font-style: italic; margin: 0;">
+          ${currentDaily.devotion}
+        </p>
+      </div>
+
+      <!-- Living It Out -->
+      <div style="margin-top: 14px; background-color: #ffffff; padding: 18px; border-radius: 12px; border: 1px solid #eef0f4;">
+        <h3 style="color: #041534; font-size: 14px; margin: 0 0 10px 0; font-weight: 700;">🛠️ Living It Out Today</h3>
+        <ol style="margin: 0; padding-left: 20px; color: #45464e; font-size: 13px; line-height: 1.6;">
+          ${(currentDaily.application || []).map(pt => `<li style="margin-bottom: 4px;">${pt}</li>`).join('')}
+        </ol>
+      </div>
+
+      <!-- Read on Site CTA (Always directs to deployed production website) -->
+      <div style="text-align: center; margin-top: 26px;">
+        <a href="https://zionix-nine.vercel.app/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+          Read & Listen on Zionix →
+        </a>
+      </div>
+
+      <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+        <p style="margin: 0;">You received this welcome message because your email was signed in to Zionix.</p>
+        <p style="margin: 4px 0 0 0;">Zionix Ministry • "Know Jesus. Know Life."</p>
+      </div>
+    </div>
+  `;
+
+  // 1. Send Welcome Email to user
+  try {
+    await transporter.sendMail({
+      from: `"Zionix Ministry" <${senderAddr}>`,
+      to: user.email,
+      subject: welcomeSubject,
+      html: welcomeHtml
+    });
+    console.log(`[Welcome Email] Successfully sent welcome email with Daily Bread to: ${user.email}`);
+  } catch (err) {
+    console.error(`[Welcome Email Error] Failed to send welcome email to ${user.email}:`, err.message);
+  }
+
+  // 2. Alert Admin (dineshbabu192006@gmail.com) when a new believer joins
+  const adminAlertEmail = 'dineshbabu192006@gmail.com';
+  if (isNew && user.email.toLowerCase() !== adminAlertEmail.toLowerCase()) {
+    try {
+      await transporter.sendMail({
+        from: `"Zionix Notification" <${senderAddr}>`,
+        to: adminAlertEmail,
+        subject: `✨ New Believer Recorded: ${user.name} (${user.email})`,
+        html: `
+          <div style="font-family: sans-serif; padding: 22px; max-width: 520px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+            <div style="text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 14px;">
+              <h3 style="color: #041534; margin: 0;">✨ New Believer Joined Zionix</h3>
+              <p style="color: #755b00; font-size: 12px; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0;">Email Notification Directory</p>
+            </div>
+            <p style="color: #334155; font-size: 14px; line-height: 1.5;">
+              A new user has signed in and has been recorded in <code>users.json</code> for Daily Bread morning reflections:
+            </p>
+            <div style="background: #f8fafc; padding: 14px; border-radius: 8px; font-size: 13px; color: #1e293b; line-height: 1.7;">
+              <strong>Name:</strong> ${user.name}<br/>
+              <strong>Email:</strong> ${user.email}<br/>
+              <strong>Joined At:</strong> ${new Date().toLocaleString()}<br/>
+              <strong>Daily Bread Status:</strong> Subscribed & Active ✅
+            </div>
+          </div>
+        `
+      });
+      console.log(`[Admin Alert] Notified admin of new believer: ${user.email}`);
+    } catch (err) {
+      console.error(`[Admin Alert Error]:`, err.message);
+    }
+  }
+
+  return { success: true };
+}
+
 // On-demand Broadcast API (allows admin to re-send or broadcast anytime from admin portal)
 app.post('/api/admin/broadcast-daily-verse', requireAdminAuth, async (req, res) => {
   const currentDaily = readDataFile('dailyVerse.json');
@@ -661,6 +797,15 @@ app.post('/api/admin/users', requireAdminAuth, async (req, res) => {
   if (githubToken) {
     commitFileToGitHub('backend/data/users.json', usersList, `chore(users): Add believer ${normalizedEmail}`, githubToken).catch(() => {});
   }
+
+  const targetUser = existingIdx >= 0 
+    ? usersList[existingIdx]
+    : usersList[usersList.length - 1];
+
+  // Send Welcome Email with today's Daily Bread reflection
+  sendNewUserWelcomeEmail(targetUser, existingIdx === -1, req.headers).catch(err => {
+    console.error('[Admin Add Believer Welcome Error]:', err.message);
+  });
 
   res.json({
     success: true,
@@ -884,7 +1029,7 @@ app.post('/api/prayer-request', async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase();
     const existingIdx = currentUsers.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
     if (existingIdx === -1) {
-      currentUsers.push({
+      const newUser = {
         id: `usr-${Date.now()}`,
         name: name.trim(),
         email: normalizedEmail,
@@ -892,9 +1037,15 @@ app.post('/api/prayer-request', async (req, res) => {
         joinedAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
         subscribedToDailyVerse: true
-      });
+      };
+      currentUsers.push(newUser);
       writeDataFile('users.json', currentUsers);
       console.log(`[New User Recorded] Added ${normalizedEmail} from prayer wall to users.json`);
+
+      // Dispatch Welcome Email + Today's Daily Bread to this new believer
+      sendNewUserWelcomeEmail(newUser, true, req.headers).catch(err => {
+        console.error('[Prayer User Welcome Error]:', err.message);
+      });
     }
   } catch (err) {
     console.error('Error auto-registering user from prayer request:', err.message);
@@ -997,19 +1148,22 @@ app.get('/api/admin/prayer-requests', requireAdminAuth, (req, res) => {
 // Google Login API
 app.post('/api/auth/google-login', async (req, res) => {
   const { name, email, avatar } = req.body;
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required' });
+  if (!email || !email.trim() || !email.includes('@')) {
+    return res.status(400).json({ error: 'Valid email address is required' });
   }
+
+  const normalizedEmail = email.trim().toLowerCase();
 
   // Upsert user in users.json
   let usersList = readDataFile('users.json') || [];
-  const existingIdx = usersList.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+  const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
+  const isNewUser = existingIdx === -1;
 
   const userProfile = {
     id: existingIdx >= 0 ? usersList[existingIdx].id : `usr-${Date.now()}`,
-    name: name || (email.split('@')[0]),
-    email: email.trim(),
-    avatar: avatar || (name ? name[0].toUpperCase() : 'Z'),
+    name: name && name.trim() ? name.trim() : (normalizedEmail.split('@')[0]),
+    email: normalizedEmail,
+    avatar: avatar || (name && name.trim() ? name.trim()[0].toUpperCase() : 'Z'),
     lastLoginAt: new Date().toISOString(),
     joinedAt: existingIdx >= 0 ? usersList[existingIdx].joinedAt : new Date().toISOString(),
     subscribedToDailyVerse: true
@@ -1019,14 +1173,29 @@ app.post('/api/auth/google-login', async (req, res) => {
     usersList[existingIdx] = { ...usersList[existingIdx], ...userProfile };
   } else {
     usersList.push(userProfile);
+    console.log(`[New User Recorded via Login] Added ${normalizedEmail} to users.json for email notifications.`);
   }
 
   writeDataFile('users.json', usersList);
 
+  // Sync users to GitHub repository if GITHUB_TOKEN is configured
+  const githubToken = process.env.GITHUB_TOKEN;
+  if (githubToken && isNewUser) {
+    commitFileToGitHub('backend/data/users.json', usersList, `chore(users): Auto-register new believer ${normalizedEmail}`, githubToken).catch(() => {});
+  }
+
+  // Send Welcome Email with today's Daily Bread to the user on sign-in
+  sendNewUserWelcomeEmail(userProfile, isNewUser, req.headers).catch(err => {
+    console.error(`[Google Login Welcome Email Error]:`, err.message);
+  });
+
   res.json({ 
     success: true, 
-    message: 'Logged in successfully via Google Auth!',
-    user: userProfile 
+    message: isNewUser 
+      ? 'Welcome to Zionix! You are now recorded for Daily Bread email notifications.' 
+      : 'Logged in successfully! Your Daily Bread subscription is active.',
+    user: userProfile,
+    isNewUser
   });
 });
 
@@ -1040,61 +1209,35 @@ app.post('/api/subscribe', async (req, res) => {
   const normalizedEmail = email.trim().toLowerCase();
   let usersList = readDataFile('users.json') || [];
   const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
+  const isNewUser = existingIdx === -1;
+
+  const subscriber = {
+    id: existingIdx >= 0 ? usersList[existingIdx].id : `usr-${Date.now()}`,
+    name: name && name.trim() ? name.trim() : normalizedEmail.split('@')[0],
+    email: normalizedEmail,
+    avatar: name && name.trim() ? name.trim()[0].toUpperCase() : 'Z',
+    joinedAt: existingIdx >= 0 ? usersList[existingIdx].joinedAt : new Date().toISOString(),
+    lastLoginAt: new Date().toISOString(),
+    subscribedToDailyVerse: true
+  };
 
   if (existingIdx >= 0) {
-    usersList[existingIdx].subscribedToDailyVerse = true;
-    usersList[existingIdx].lastLoginAt = new Date().toISOString();
+    usersList[existingIdx] = { ...usersList[existingIdx], ...subscriber };
   } else {
-    usersList.push({
-      id: `usr-${Date.now()}`,
-      name: name && name.trim() ? name.trim() : normalizedEmail.split('@')[0],
-      email: normalizedEmail,
-      avatar: name && name.trim() ? name.trim()[0].toUpperCase() : 'Z',
-      joinedAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
-      subscribedToDailyVerse: true
-    });
+    usersList.push(subscriber);
   }
 
   writeDataFile('users.json', usersList);
   console.log(`[New Subscriber Recorded] ${normalizedEmail} subscribed to Daily Bread.`);
 
-  // Send a welcome email immediately to the new subscriber
-  const transporter = createMailTransporter();
-  if (transporter) {
-    const senderAddr = process.env.GMAIL_USER ? process.env.GMAIL_USER.trim() : 'daily@zionix.org';
-    const welcomeHtml = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
-        <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
-          <h2 style="color: #041534; font-size: 22px; margin: 0;">🌅 Welcome to Zionix Daily Bread</h2>
-          <p style="color: #755b00; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 6px 0 0 0;">Spiritual Nourishment for Your Walk</p>
-        </div>
-        <div style="padding: 24px 0; color: #334155; font-size: 15px; line-height: 1.6;">
-          <p>Grace and peace to you!</p>
-          <p>Thank you for subscribing to Zionix Daily Bread. Every time our daily reflection and Scripture are published by our ministry, you will receive the message directly in your inbox.</p>
-          <div style="text-align: center; margin-top: 24px;">
-            <a href="https://zionix-nine.vercel.app/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
-              Read Today's Daily Bread →
-            </a>
-          </div>
-        </div>
-        <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e5e7eb; padding-top: 14px;">
-          <p style="margin: 0;">Zionix Ministry • "Know Jesus. Know Life."</p>
-        </div>
-      </div>
-    `;
-
-    transporter.sendMail({
-      from: `"Zionix Ministry" <${senderAddr}>`,
-      to: normalizedEmail,
-      subject: '🌅 Welcome to Zionix Daily Bread!',
-      html: welcomeHtml
-    }).catch(err => console.error('[Subscribe Welcome Email Error]:', err.message));
-  }
+  // Send Welcome Email with today's Daily Bread immediately
+  sendNewUserWelcomeEmail(subscriber, isNewUser, req.headers).catch(err => {
+    console.error('[Subscribe Welcome Email Error]:', err.message);
+  });
 
   res.json({
     success: true,
-    message: 'You have been successfully subscribed to Zionix Daily Bread!'
+    message: 'You have been successfully registered and subscribed to Zionix Daily Bread!'
   });
 });
 
