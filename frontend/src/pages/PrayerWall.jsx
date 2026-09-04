@@ -23,8 +23,8 @@ const PRAYER_CATEGORIES = [
   { id: 'Financial & Career', label: 'Financial & Career', icon: '💼' },
   { id: 'Spiritual Growth', label: 'Spiritual Growth', icon: '🌱' },
   { id: 'Guidance & Direction', label: 'Guidance & Direction', icon: '🧭' },
-  { id: 'Thanksgiving', label: 'Praise & Thanksgiving', icon: '🙌' },
-  { id: 'General Support', label: 'General Prayer', icon: '🙏' }
+  { id: 'Praise & Thanksgiving', label: 'Praise & Thanksgiving', icon: '🙌' },
+  { id: 'General Prayer', label: 'General Prayer', icon: '🙏' }
 ];
 
 const PRAYER_PROMISES = [
@@ -236,14 +236,14 @@ export default function PrayerWall() {
                             key={cat.id}
                             type="button"
                             onClick={() => setCategory(cat.id)}
-                            className={`p-2.5 sm:p-3 min-h-[58px] rounded-xl border-2 flex items-center gap-2 transition-all cursor-pointer text-left overflow-hidden ${
+                            className={`p-3 sm:p-3.5 min-h-[82px] rounded-2xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer text-center group ${
                               isSelected
-                                ? 'bg-primary border-primary text-white shadow-md font-bold ring-2 ring-primary/20'
-                                : 'bg-white dark:bg-zinc-800 border-outline-variant hover:border-primary/50 text-primary dark:text-zinc-100 font-bold hover:bg-surface-container-low'
+                                ? 'bg-primary border-primary text-white shadow-md ring-2 ring-primary/20 scale-[1.02]'
+                                : 'bg-white dark:bg-zinc-800 border-outline-variant hover:border-primary/50 text-primary dark:text-zinc-100 hover:bg-surface-container-low shadow-sm'
                             }`}
                           >
-                            <span className="text-base sm:text-lg shrink-0">{cat.icon}</span>
-                            <span className={`text-[11px] sm:text-xs font-bold leading-snug flex-1 break-words ${
+                            <span className="text-xl sm:text-2xl transition-transform group-hover:scale-110">{cat.icon}</span>
+                            <span className={`font-headline-sm text-xs sm:text-[13px] font-bold leading-tight ${
                               isSelected ? 'text-white' : 'text-primary dark:text-zinc-100'
                             }`}>
                               {cat.label}

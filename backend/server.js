@@ -4,9 +4,35 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import dns from 'dns';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import { getCrossReferencesForChapter, BIBLE_BOOKS_ORDER, BIBLE_BOOK_NAMES } from './crossReferences.js';
+import { 
+  initDb, 
+  getAllUsers, 
+  findUserByEmail, 
+  upsertUser, 
+  getAllPrayers, 
+  insertPrayerRequest, 
+  getAllEmailRecipients, 
+  getAppSetting, 
+  setAppSetting 
+} from './db/index.js';
+
+// Prioritize IPv4 in Node.js to eliminate Windows IPv6 SMTP connection hangs
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
+let cachedGmailIp = '192.178.211.108';
+try {
+  dns.resolve4('smtp.gmail.com', (err, addresses) => {
+    if (!err && addresses && addresses.length > 0) {
+      cachedGmailIp = addresses[0];
+    }
+  });
+} catch (e) {}
 
 // Resolve __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -20,6 +46,13 @@ const PRAYER_RECIPIENT_EMAIL = process.env.PRAYER_EMAIL_RECIPIENT || 'dineshbabu
 
 app.use(cors());
 app.use(express.json());
+
+// Initialize Neon PostgreSQL database on startup
+initDb().then(ok => {
+  if (ok) console.log('Neon PostgreSQL connected and initialized.');
+}).catch(err => {
+  console.error('Failed to initialize Neon PostgreSQL:', err);
+});
 
 // Preload Bible data on startup
 let bibleData = null;
@@ -148,27 +181,32 @@ async function commitFileToGitHub(filePathInRepo, contentObj, commitMessage, tok
   }
 }
 
-// Helper to create mail transporter (checks headers -> saved mailConfig.json -> process.env)
+// Helper to create mail transporter (checks headers -> saved mailConfig.json -> process.env -> hardcoded fallback)
 const createMailTransporter = (reqHeaders = {}) => {
   const mailConfig = readDataFile('mailConfig.json') || {};
 
-  const host = reqHeaders['x-mail-host'] || mailConfig.host || process.env.SMTP_HOST || (
-    (reqHeaders['x-mail-user'] || mailConfig.user || process.env.GMAIL_USER) ? 'smtp.gmail.com' : null
-  );
-
-  const port = Number(reqHeaders['x-mail-port'] || mailConfig.port || process.env.SMTP_PORT) || 587;
-  const user = (reqHeaders['x-mail-user'] || mailConfig.user || process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
-  const pass = (reqHeaders['x-mail-pass'] || mailConfig.pass || process.env.GMAIL_APP_PASS || process.env.SMTP_PASS || '').replace(/\s+/g, '');
+  const rawHost = reqHeaders['x-mail-host'] || mailConfig.host || process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = Number(reqHeaders['x-mail-port'] || mailConfig.port || process.env.SMTP_PORT) || 465;
+  const user = (reqHeaders['x-mail-user'] || mailConfig.user || process.env.GMAIL_USER || process.env.SMTP_USER || 'babud4395@gmail.com').trim();
+  const pass = (reqHeaders['x-mail-pass'] || mailConfig.pass || process.env.GMAIL_APP_PASS || process.env.SMTP_PASS || 'hzpt sboi okac lgkk').replace(/\s+/g, '');
 
   if (user && pass) {
+    const isGmail = rawHost.includes('gmail') || user.endsWith('@gmail.com');
     return nodemailer.createTransport({
-      host: host || 'smtp.gmail.com',
-      port: port,
-      secure: port === 465,
+      host: isGmail
+        ? (process.platform === 'win32' ? (cachedGmailIp || '192.178.211.108') : 'smtp.gmail.com')
+        : rawHost,
+      port: port === 587 ? 587 : 465,
+      secure: port === 465 || (!port && isGmail),
+      family: 4,
       auth: { user, pass },
       tls: {
+        servername: isGmail ? 'smtp.gmail.com' : rawHost,
         rejectUnauthorized: false
-      }
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 8000,
+      socketTimeout: 15000
     });
   }
 
@@ -178,7 +216,7 @@ const createMailTransporter = (reqHeaders = {}) => {
 // Helper to get active mail sender address
 const getMailSenderAddress = (reqHeaders = {}) => {
   const mailConfig = readDataFile('mailConfig.json') || {};
-  return (reqHeaders['x-mail-user'] || mailConfig.user || process.env.GMAIL_USER || process.env.SMTP_USER || 'daily@zionix.org').trim();
+  return (reqHeaders['x-mail-user'] || mailConfig.user || process.env.GMAIL_USER || process.env.SMTP_USER || 'babud4395@gmail.com').trim();
 };
 
 // Admin Credentials
@@ -244,9 +282,13 @@ const getPastDateInfo = (index) => {
 };
 
 // Daily Verse API (Public)
-app.get('/api/daily-verse', (req, res) => {
-  const dailyVerse = readDataFile('dailyVerse.json');
-  const recentReflections = readDataFile('recentReflections.json') || [];
+app.get('/api/daily-verse', async (req, res) => {
+  const dbDaily = await getAppSetting('daily_verse');
+  const dbReflections = await getAppSetting('recent_reflections');
+  const dailyVerse = dbDaily || readDataFile('dailyVerse.json');
+  const recentReflections = (Array.isArray(dbReflections) && dbReflections.length > 0) 
+    ? dbReflections 
+    : (readDataFile('recentReflections.json') || []);
   
   if (dailyVerse) {
     const formattedReflections = recentReflections.slice(0, 5).map((item, idx) => {
@@ -267,9 +309,14 @@ app.get('/api/daily-verse', (req, res) => {
 });
 
 // Admin Get Daily Bread & History
-app.get('/api/admin/daily-verse', requireAdminAuth, (req, res) => {
-  const dailyVerse = readDataFile('dailyVerse.json');
-  const recentReflections = readDataFile('recentReflections.json') || [];
+app.get('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
+  const dbDaily = await getAppSetting('daily_verse');
+  const dbReflections = await getAppSetting('recent_reflections');
+  const dailyVerse = dbDaily || readDataFile('dailyVerse.json');
+  const recentReflections = (Array.isArray(dbReflections) && dbReflections.length > 0) 
+    ? dbReflections 
+    : (readDataFile('recentReflections.json') || []);
+
   const formattedReflections = recentReflections.slice(0, 5).map((item, idx) => {
     const dateInfo = getPastDateInfo(idx);
     return {
@@ -296,14 +343,12 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
     return res.status(400).json({ error: 'Living It Out must contain exactly 3 non-empty points' });
   }
 
-  const currentDaily = readDataFile('dailyVerse.json');
-  let recentReflections = readDataFile('recentReflections.json') || [];
-
-  const hasChanged = !currentDaily || 
-    currentDaily.verse?.trim() !== verse.trim() || 
-    currentDaily.reference?.trim() !== reference.trim() ||
-    currentDaily.context?.trim() !== context.trim() ||
-    currentDaily.devotion?.trim() !== devotion.trim();
+  const dbDaily = await getAppSetting('daily_verse');
+  const currentDaily = dbDaily || readDataFile('dailyVerse.json');
+  const dbReflections = await getAppSetting('recent_reflections');
+  let recentReflections = (Array.isArray(dbReflections) && dbReflections.length > 0)
+    ? dbReflections
+    : (readDataFile('recentReflections.json') || []);
 
   // If there's an existing verse and it differs from the new verse, archive it to recent reflections
   if (currentDaily && currentDaily.verse && currentDaily.verse.trim() !== verse.trim()) {
@@ -318,6 +363,7 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
     // Prepend to history and keep maximum 5 entries
     recentReflections = [archivedItem, ...recentReflections.filter(r => r.reference !== currentDaily.reference)].slice(0, 5);
     writeDataFile('recentReflections.json', recentReflections);
+    await setAppSetting('recent_reflections', recentReflections);
   }
 
   const newDailyVerse = {
@@ -330,10 +376,12 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
     updatedAt: new Date().toISOString()
   };
 
-  const written = writeDataFile('dailyVerse.json', newDailyVerse);
-  if (!written) {
-    return res.status(500).json({ error: 'Failed to write updated daily verse' });
-  }
+  // 1. Permanently save to Neon PostgreSQL app_settings
+  await setAppSetting('daily_verse', newDailyVerse);
+  await setAppSetting('recent_reflections', recentReflections);
+
+  // 2. Local JSON fallback
+  writeDataFile('dailyVerse.json', newDailyVerse);
 
   const formattedReflections = recentReflections.slice(0, 5).map((item, idx) => {
     const dateInfo = getPastDateInfo(idx);
@@ -344,7 +392,7 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
     };
   });
 
-  // Broadcast function to email Daily Bread to all registered users and prayer believers
+  // Broadcast function to email Daily Bread to all registered users and prayer believers in Neon DB
   const emailDeliveryResult = await broadcastDailyVerseToUsers(
     newDailyVerse, 
     req.body.knownUsers || [], 
@@ -356,6 +404,7 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
   let githubSyncResult = null;
   if (githubToken) {
     try {
+      const usersList = await getAllUsers();
       githubSyncResult = await commitFileToGitHub(
         'backend/data/dailyVerse.json',
         newDailyVerse,
@@ -387,8 +436,8 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
     message: emailDeliveryResult.sentCount > 0
       ? `Daily Bread updated successfully! Email notification sent individually to ${emailDeliveryResult.sentCount} believers.`
       : (emailDeliveryResult.transporterConfigured
-          ? `Daily Bread saved. Email delivery attempted for ${emailDeliveryResult.totalRecipients} recipients, but encountered errors.`
-          : 'Daily Bread saved! Note: Email broadcast was not sent because Mail credentials (Gmail/SMTP) are not configured.'),
+          ? `Daily Bread saved in Neon DB. Email delivery attempted for ${emailDeliveryResult.totalRecipients} recipients, but encountered errors.`
+          : 'Daily Bread saved in Neon DB! Note: Email broadcast was not sent because Mail credentials (Gmail/SMTP) are not configured.'),
     dailyVerse: newDailyVerse,
     recentReflections: formattedReflections,
     notifiedUsersCount: emailDeliveryResult.sentCount,
@@ -399,13 +448,22 @@ app.post('/api/admin/daily-verse', requireAdminAuth, async (req, res) => {
 
 // Dedicated Daily Bread Broadcast Helper function
 async function broadcastDailyVerseToUsers(dailyVerse, additionalUsers = [], reqHeaders = {}) {
-  const usersList = readDataFile('users.json') || [];
-  const prayerList = readDataFile('prayerRequests.json') || [];
+  // 1. Fetch all believers and emails from Neon PostgreSQL database
+  const dbEmails = await getAllEmailRecipients().catch(() => []);
+  const dbUsers = await getAllUsers().catch(() => []);
+  const dbPrayers = await getAllPrayers().catch(() => []);
 
-  // Combine and deduplicate all believers from users.json, prayerRequests.json, and additional client-provided users
+  // 2. Fallback to local files if any
+  const localUsers = readDataFile('users.json') || [];
+  const localPrayers = readDataFile('prayerRequests.json') || [];
+
+  // Combine and deduplicate all believers from Neon PostgreSQL, local JSON, and additional client-provided users
   const allCandidateEmails = [
-    ...usersList.map(u => u.email),
-    ...prayerList.map(p => p.email),
+    ...dbEmails,
+    ...dbUsers.map(u => u.email),
+    ...dbPrayers.map(p => p.email),
+    ...localUsers.map(u => u.email),
+    ...localPrayers.map(p => p.email),
     ...additionalUsers.map(u => typeof u === 'string' ? u : u?.email),
     'dineshbabu192006@gmail.com',
     'babud4395@gmail.com'
@@ -773,43 +831,40 @@ app.post('/api/admin/users', requireAdminAuth, async (req, res) => {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  let usersList = readDataFile('users.json') || [];
-  const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
+  
+  // 1. Permanently upsert believer in Neon PostgreSQL
+  const { user: targetUser, isNew } = await upsertUser({
+    name: name && name.trim() ? name.trim() : normalizedEmail.split('@')[0],
+    email: normalizedEmail
+  });
 
-  if (existingIdx >= 0) {
-    usersList[existingIdx].name = name && name.trim() ? name.trim() : usersList[existingIdx].name;
-    usersList[existingIdx].subscribedToDailyVerse = true;
-  } else {
-    usersList.push({
-      id: `usr-${Date.now()}`,
-      name: name && name.trim() ? name.trim() : normalizedEmail.split('@')[0],
-      email: normalizedEmail,
-      avatar: name && name.trim() ? name.trim()[0].toUpperCase() : 'Z',
-      joinedAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
-      subscribedToDailyVerse: true
-    });
-  }
+  // Also maintain local file as fallback
+  try {
+    let usersList = readDataFile('users.json') || [];
+    const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
+    if (existingIdx >= 0) {
+      usersList[existingIdx] = { ...usersList[existingIdx], ...targetUser };
+    } else {
+      usersList.push(targetUser);
+    }
+    writeDataFile('users.json', usersList);
+  } catch (err) {}
 
-  writeDataFile('users.json', usersList);
+  const allUsers = await getAllUsers();
 
   const githubToken = req.headers['x-github-token'] || process.env.GITHUB_TOKEN;
   if (githubToken) {
-    commitFileToGitHub('backend/data/users.json', usersList, `chore(users): Add believer ${normalizedEmail}`, githubToken).catch(() => {});
+    commitFileToGitHub('backend/data/users.json', allUsers, `chore(users): Add believer ${normalizedEmail}`, githubToken).catch(() => {});
   }
 
-  const targetUser = existingIdx >= 0 
-    ? usersList[existingIdx]
-    : usersList[usersList.length - 1];
-
   // Send Welcome Email with today's Daily Bread reflection
-  sendNewUserWelcomeEmail(targetUser, existingIdx === -1, req.headers).catch(err => {
+  sendNewUserWelcomeEmail(targetUser, isNew, req.headers).catch(err => {
     console.error('[Admin Add Believer Welcome Error]:', err.message);
   });
 
   res.json({
     success: true,
-    users: usersList,
+    users: allUsers,
     message: `Believer ${normalizedEmail} successfully registered for Daily Bread updates!`
   });
 });
@@ -1018,32 +1073,36 @@ app.post('/api/prayer-request', async (req, res) => {
     })
   };
 
-  // 1. Save to local storage database
+  // 1. Permanently save prayer request to Neon PostgreSQL
+  try {
+    await insertPrayerRequest(newRequest);
+  } catch (dbErr) {
+    console.error('[Neon DB] Error saving prayer request:', dbErr.message);
+  }
+
+  // Local fallback
   let prayerList = readDataFile('prayerRequests.json') || [];
   prayerList = [newRequest, ...prayerList];
   writeDataFile('prayerRequests.json', prayerList);
 
-  // 1b. Automatically record new believer in users.json for Daily Bread updates
+  // 1b. Automatically permanently record new believer in Neon users table
   try {
+    const { user: recordedUser, isNew } = await upsertUser({
+      name: name.trim(),
+      email: email.trim().toLowerCase()
+    });
+
     let currentUsers = readDataFile('users.json') || [];
     const normalizedEmail = email.trim().toLowerCase();
     const existingIdx = currentUsers.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
     if (existingIdx === -1) {
-      const newUser = {
-        id: `usr-${Date.now()}`,
-        name: name.trim(),
-        email: normalizedEmail,
-        avatar: name.trim() ? name.trim()[0].toUpperCase() : 'Z',
-        joinedAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString(),
-        subscribedToDailyVerse: true
-      };
-      currentUsers.push(newUser);
+      currentUsers.push(recordedUser);
       writeDataFile('users.json', currentUsers);
-      console.log(`[New User Recorded] Added ${normalizedEmail} from prayer wall to users.json`);
+    }
 
-      // Dispatch Welcome Email + Today's Daily Bread to this new believer
-      sendNewUserWelcomeEmail(newUser, true, req.headers).catch(err => {
+    if (isNew) {
+      console.log(`[Neon DB] New believer permanently recorded from prayer wall: ${recordedUser.email}`);
+      sendNewUserWelcomeEmail(recordedUser, true, req.headers).catch(err => {
         console.error('[Prayer User Welcome Error]:', err.message);
       });
     }
@@ -1051,8 +1110,8 @@ app.post('/api/prayer-request', async (req, res) => {
     console.error('Error auto-registering user from prayer request:', err.message);
   }
 
-  // 2. Dispatch Email Notification to target email: dineshbabu192006@gmail.com
-  const transporter = createMailTransporter();
+  // 2. Dispatch Email Notification to target admin email: dineshbabu192006@gmail.com
+  const transporter = createMailTransporter(req.headers);
   const mailSubject = `🙏 New Prayer Request: ${newRequest.name} (${newRequest.category}) — Zionix Prayer Wall`;
   const mailHtml = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #fcfcfb;">
@@ -1108,22 +1167,26 @@ ${newRequest.prayerPoints}
     </div>
   `;
 
+  let emailDelivered = false;
   if (transporter) {
-    const senderAddr = process.env.GMAIL_USER ? process.env.GMAIL_USER.trim() : 'prayer@zionix.org';
-    transporter.sendMail({
-      from: `"Zionix Prayer Wall" <${senderAddr}>`,
-      to: PRAYER_RECIPIENT_EMAIL,
-      replyTo: newRequest.email,
-      subject: mailSubject,
-      html: mailHtml
-    }).then(() => {
-      console.log(`[Prayer Wall] Notification email successfully delivered to ${PRAYER_RECIPIENT_EMAIL}`);
-    }).catch(err => {
+    const senderAddr = getMailSenderAddress(req.headers);
+    try {
+      console.log(`[Prayer Wall] Sending prayer email to admin: ${PRAYER_RECIPIENT_EMAIL}...`);
+      const sendInfo = await transporter.sendMail({
+        from: `"Zionix Prayer Wall" <${senderAddr}>`,
+        to: PRAYER_RECIPIENT_EMAIL,
+        replyTo: newRequest.email,
+        subject: mailSubject,
+        html: mailHtml
+      });
+      emailDelivered = true;
+      console.log(`[Prayer Wall] Notification email successfully delivered to admin (${PRAYER_RECIPIENT_EMAIL})! Message ID:`, sendInfo.messageId);
+    } catch (err) {
       console.error(`[Prayer Wall] Error sending email via transporter:`, err.message);
-    });
+    }
   } else {
     console.log(`\n======================================================`);
-    console.log(`[PRAYER WALL NOTIFICATION]`);
+    console.log(`[PRAYER WALL NOTIFICATION - Transporter Not Configured]`);
     console.log(`To: ${PRAYER_RECIPIENT_EMAIL}`);
     console.log(`Subject: ${mailSubject}`);
     console.log(`From: ${newRequest.name} <${newRequest.email}>`);
@@ -1135,14 +1198,18 @@ ${newRequest.prayerPoints}
   res.json({
     success: true,
     message: 'Your prayer request has been received. Our prayer team is lifting your request before God.',
-    requestId: newRequest.id
+    requestId: newRequest.id,
+    emailDelivered
   });
 });
 
 // Admin endpoint to view prayer requests
-app.get('/api/admin/prayer-requests', requireAdminAuth, (req, res) => {
-  const prayerList = readDataFile('prayerRequests.json') || [];
-  res.json({ prayerRequests: prayerList });
+app.get('/api/admin/prayer-requests', requireAdminAuth, async (req, res) => {
+  let prayerList = await getAllPrayers();
+  if (!prayerList || prayerList.length === 0) {
+    prayerList = readDataFile('prayerRequests.json') || [];
+  }
+  res.json({ prayerRequests: prayerList, count: prayerList.length });
 });
 
 // Google Login API
@@ -1154,48 +1221,47 @@ app.post('/api/auth/google-login', async (req, res) => {
 
   const normalizedEmail = email.trim().toLowerCase();
 
-  // Upsert user in users.json
-  let usersList = readDataFile('users.json') || [];
-  const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
-  const isNewUser = existingIdx === -1;
-
-  const userProfile = {
-    id: existingIdx >= 0 ? usersList[existingIdx].id : `usr-${Date.now()}`,
-    name: name && name.trim() ? name.trim() : (normalizedEmail.split('@')[0]),
+  // 1. Permanently upsert believer in Neon PostgreSQL
+  const { user: userProfile, isNew } = await upsertUser({
+    name: name && name.trim() ? name.trim() : normalizedEmail.split('@')[0],
     email: normalizedEmail,
-    avatar: avatar || (name && name.trim() ? name.trim()[0].toUpperCase() : 'Z'),
-    lastLoginAt: new Date().toISOString(),
-    joinedAt: existingIdx >= 0 ? usersList[existingIdx].joinedAt : new Date().toISOString(),
-    subscribedToDailyVerse: true
-  };
+    avatar: avatar || (name && name.trim() ? name.trim()[0].toUpperCase() : 'Z')
+  });
 
-  if (existingIdx >= 0) {
-    usersList[existingIdx] = { ...usersList[existingIdx], ...userProfile };
-  } else {
-    usersList.push(userProfile);
-    console.log(`[New User Recorded via Login] Added ${normalizedEmail} to users.json for email notifications.`);
-  }
-
-  writeDataFile('users.json', usersList);
+  // Local fallback
+  try {
+    let usersList = readDataFile('users.json') || [];
+    const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
+    if (existingIdx >= 0) {
+      usersList[existingIdx] = { ...usersList[existingIdx], ...userProfile };
+    } else {
+      usersList.push(userProfile);
+    }
+    writeDataFile('users.json', usersList);
+  } catch (err) {}
 
   // Sync users to GitHub repository if GITHUB_TOKEN is configured
   const githubToken = process.env.GITHUB_TOKEN;
-  if (githubToken && isNewUser) {
-    commitFileToGitHub('backend/data/users.json', usersList, `chore(users): Auto-register new believer ${normalizedEmail}`, githubToken).catch(() => {});
+  if (githubToken && isNew) {
+    getAllUsers().then(allUsers => {
+      commitFileToGitHub('backend/data/users.json', allUsers, `chore(users): Auto-register new believer ${normalizedEmail}`, githubToken).catch(() => {});
+    }).catch(() => {});
   }
 
-  // Send Welcome Email with today's Daily Bread to the user on sign-in
-  sendNewUserWelcomeEmail(userProfile, isNewUser, req.headers).catch(err => {
-    console.error(`[Google Login Welcome Email Error]:`, err.message);
-  });
+  // Send Welcome Email with today's Daily Bread to the user on sign-in if new
+  if (isNew) {
+    sendNewUserWelcomeEmail(userProfile, true, req.headers).catch(err => {
+      console.error(`[Google Login Welcome Email Error]:`, err.message);
+    });
+  }
 
   res.json({ 
     success: true, 
-    message: isNewUser 
-      ? 'Welcome to Zionix! You are now recorded for Daily Bread email notifications.' 
-      : 'Logged in successfully! Your Daily Bread subscription is active.',
+    message: isNew 
+      ? 'Welcome to Zionix! You are now permanently recorded for Daily Bread email notifications.' 
+      : 'Logged in successfully! Your email is recorded for ministry updates.',
     user: userProfile,
-    isNewUser
+    isNewUser: isNew
   });
 });
 
@@ -1207,43 +1273,41 @@ app.post('/api/subscribe', async (req, res) => {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  let usersList = readDataFile('users.json') || [];
-  const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
-  const isNewUser = existingIdx === -1;
-
-  const subscriber = {
-    id: existingIdx >= 0 ? usersList[existingIdx].id : `usr-${Date.now()}`,
+  const { user: subscriber, isNew } = await upsertUser({
     name: name && name.trim() ? name.trim() : normalizedEmail.split('@')[0],
-    email: normalizedEmail,
-    avatar: name && name.trim() ? name.trim()[0].toUpperCase() : 'Z',
-    joinedAt: existingIdx >= 0 ? usersList[existingIdx].joinedAt : new Date().toISOString(),
-    lastLoginAt: new Date().toISOString(),
-    subscribedToDailyVerse: true
-  };
-
-  if (existingIdx >= 0) {
-    usersList[existingIdx] = { ...usersList[existingIdx], ...subscriber };
-  } else {
-    usersList.push(subscriber);
-  }
-
-  writeDataFile('users.json', usersList);
-  console.log(`[New Subscriber Recorded] ${normalizedEmail} subscribed to Daily Bread.`);
-
-  // Send Welcome Email with today's Daily Bread immediately
-  sendNewUserWelcomeEmail(subscriber, isNewUser, req.headers).catch(err => {
-    console.error('[Subscribe Welcome Email Error]:', err.message);
+    email: normalizedEmail
   });
+
+  try {
+    let usersList = readDataFile('users.json') || [];
+    const existingIdx = usersList.findIndex(u => u.email && u.email.toLowerCase() === normalizedEmail);
+    if (existingIdx >= 0) {
+      usersList[existingIdx] = { ...usersList[existingIdx], ...subscriber };
+    } else {
+      usersList.push(subscriber);
+    }
+    writeDataFile('users.json', usersList);
+  } catch (err) {}
+
+  // Send Welcome Email with today's Daily Bread immediately if new
+  if (isNew) {
+    sendNewUserWelcomeEmail(subscriber, true, req.headers).catch(err => {
+      console.error('[Subscribe Welcome Email Error]:', err.message);
+    });
+  }
 
   res.json({
     success: true,
-    message: 'You have been successfully registered and subscribed to Zionix Daily Bread!'
+    message: 'You have been successfully registered for Zionix Daily Bread!'
   });
 });
 
 // Admin endpoint to view registered users
-app.get('/api/admin/users', requireAdminAuth, (req, res) => {
-  const usersList = readDataFile('users.json') || [];
+app.get('/api/admin/users', requireAdminAuth, async (req, res) => {
+  let usersList = await getAllUsers();
+  if (!usersList || usersList.length === 0) {
+    usersList = readDataFile('users.json') || [];
+  }
   res.json({ users: usersList, count: usersList.length });
 });
 
