@@ -1,20 +1,25 @@
-# Robots.txt for Zionix Ministry - Global Web Crawling
+# Robots.txt for Zionix — Search Engine Crawling Rules
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /api/
 
-# Priority Crawlers
+# Priority Search Crawlers
 User-agent: Googlebot
 Allow: /
 Disallow: /admin
+Disallow: /api/
 
 User-agent: Bingbot
 Allow: /
 Disallow: /admin
+Disallow: /api/
 
 User-agent: Applebot
 Allow: /
 Disallow: /admin
+Disallow: /api/
 
-# Sitemap Location
-Sitemap: https://zionix.org/sitemap.xml
+# XML Sitemap
+Sitemap: https://zionix-nine.vercel.app/sitemap.xml
+

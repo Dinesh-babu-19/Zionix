@@ -14,6 +14,7 @@ import {
   Anchor,
   Flame as SpiritIcon
 } from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function GospelClarity() {
   const containerVariants = {
@@ -50,6 +51,12 @@ export default function GospelClarity() {
 
   return (
     <main className="pt-24 pb-20 bg-background text-on-surface">
+      <SEO
+        title="The Gospel of Jesus Christ | Salvation, Faith & Grace | Zionix"
+        description="Discover what the Gospel means: creation, God's love, Christ's sacrifice on the cross, His glorious resurrection, and the gift of eternal life."
+        keywords="what is the Gospel, Gospel of Jesus Christ, salvation through Jesus, Christian salvation, grace and faith, Jesus resurrection, forgiveness of sins, Zionix"
+        path="/gospel"
+      />
       <div className="max-w-[800px] mx-auto px-margin-mobile">
         {/* Breadcrumbs */}
         <nav className="mb-8">

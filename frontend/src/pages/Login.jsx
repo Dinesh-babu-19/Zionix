@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Loader2, Key } from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -144,6 +145,12 @@ export default function Login() {
 
   return (
     <main className="pt-24 pb-20 bg-background min-h-[calc(100vh-64px)] flex items-center justify-center text-on-surface">
+      <SEO
+        title="Sign In | Zionix Ministry"
+        description="Sign in to your Zionix account to save prayer burdens, customize your devotional journey, and stay connected with the Christian community."
+        keywords="Zionix login, Christian account, sign in, prayer account"
+        path="/login"
+      />
       <div className="max-w-[460px] w-full mx-margin-mobile">
         {/* Main login card */}
         <motion.div 

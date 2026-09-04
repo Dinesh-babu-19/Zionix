@@ -15,6 +15,7 @@ import {
   Sun,
   Flame
 } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const PRAYER_CATEGORIES = [
   { id: 'Healing & Health', label: 'Healing & Health', icon: '❤️' },
@@ -126,6 +127,12 @@ export default function PrayerWall() {
 
   return (
     <main className="pt-20 pb-24 bg-background min-h-screen text-on-surface">
+      <SEO
+        title="Christian Prayer Wall & Intercession Requests | Zionix"
+        description="Share your prayer requests and burdens on the Zionix Sacred Prayer Wall. Join believers worldwide in faithful agreement and intercession."
+        keywords="online prayer, Christian prayer, prayer requests, prayer wall, intercessory prayer, prayer for healing, prayer support, Zionix"
+        path="/prayer-wall"
+      />
       {/* Hero Section */}
       <section className="relative py-16 md:py-24 bg-gradient-heaven border-b border-outline-variant/30 text-center px-margin-mobile overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10">

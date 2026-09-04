@@ -25,6 +25,7 @@ import {
   Send,
   Plus
 } from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function AdminDailyVerse() {
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('zionix_admin_token') || '');
@@ -472,6 +473,12 @@ export default function AdminDailyVerse() {
   if (!authToken) {
     return (
       <div className="min-h-screen bg-background flex flex-col justify-center items-center px-4 py-12">
+        <SEO
+          title="Developer Studio | Zionix"
+          description="Developer and administrative console for Zionix content management."
+          path="/admin"
+          noindex={true}
+        />
         <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant/60 shadow-lg rounded-2xl p-8">
           <div className="flex flex-col items-center text-center mb-8">
             <div className="w-14 h-14 bg-primary text-white rounded-2xl flex items-center justify-center mb-4 shadow-md">
@@ -553,6 +560,12 @@ export default function AdminDailyVerse() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <SEO
+        title="Developer Studio | Zionix"
+        description="Developer and administrative console for Zionix content management."
+        path="/admin"
+        noindex={true}
+      />
       {/* Top Admin Navigation Bar */}
       <header className="bg-surface border-b border-outline-variant/40 sticky top-0 z-40 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">

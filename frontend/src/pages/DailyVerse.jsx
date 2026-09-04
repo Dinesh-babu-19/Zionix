@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Check
 } from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function DailyVerse() {
   const { requireAuth } = useAuth();
@@ -150,6 +151,12 @@ export default function DailyVerse() {
 
   return (
     <main className="pt-16">
+      <SEO
+        title={data?.reference ? `Daily Bible Verse: ${data.reference} | Zionix` : "Daily Bible Verse & Morning Devotional | Zionix"}
+        description={data?.devotion ? `${data.reference} — "${data.verse.slice(0, 110)}..." Read today's Scripture reflection and daily living applications on Zionix.` : "Start your day with Scripture, biblical context, a thoughtful devotional reflection, and practical ways to live out God's Word."}
+        keywords="daily Bible verse, daily devotional, verse of the day, morning Bible devotional, Scripture reflection, Daily Bread, living it out today, Zionix"
+        path="/verse"
+      />
       {/* Hero Section */}
       <section className="relative min-h-[50vh] md:min-h-[60vh] py-16 md:py-24 flex flex-col items-center justify-center text-center px-margin-mobile overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-10">

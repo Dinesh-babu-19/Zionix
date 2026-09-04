@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Sun, BookOpen, Sparkles, ArrowRight } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { HeroGeometric } from '@/components/ui/shape-landing-hero';
+import SEO from '../components/SEO';
 
 // Assets
 import shepherdImg from '@/assets/shepherd.png';
@@ -51,6 +52,12 @@ export default function Home() {
 
   return (
     <main>
+      <SEO
+        title="Zionix | Know Jesus. Know Life. — Daily Bread, Prayer Wall & Holy Bible"
+        description="Discover the timeless hope of Jesus Christ. Access daily Scripture reflections, submit prayer requests on our sacred Prayer Wall, and explore the Holy Bible."
+        keywords="Christian website, Bible, daily devotional, daily Bible verse, prayer, prayer wall, Gospel, Jesus Christ, Scripture, Christian devotion, Bible reading, Christian faith, Zionix"
+        path="/"
+      />
       {/* Hero Section */}
       <HeroGeometric badge="Zionix" title1="Jesus Christ" title2="The Way, The Truth, & The Life">
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">

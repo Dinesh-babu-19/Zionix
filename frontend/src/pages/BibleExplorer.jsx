@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   Check
 } from 'lucide-react';
+import SEO from '../components/SEO';
 
 // Full Protestant Bible Metadata
 const BIBLE_BOOKS_MAP = {
@@ -456,6 +457,12 @@ export default function BibleExplorer() {
 
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'dark bg-[#121212] text-[#e2e2e0]' : 'bg-background text-on-surface'}`}>
+      <SEO
+        title={selectedBook && selectedChapter ? `${BIBLE_BOOKS_MAP[selectedBook]?.name || 'Bible'} Chapter ${selectedChapter} (${activeTranslation}) | Read Bible Online | Zionix` : "Online Bible | Read Scripture in KJV, ESV & NIV | Zionix"}
+        description={selectedBook && selectedChapter ? `Read and study ${BIBLE_BOOKS_MAP[selectedBook]?.name || 'the Bible'} Chapter ${selectedChapter} in ${activeTranslation} with cross-references, search, audio reader, and bookmarking tools on Zionix.` : "Read and explore the Bible online with Zionix. Search Scripture across all 66 books and explore KJV, ESV, and NIV translations."}
+        keywords="read Bible online, KJV Bible online, ESV Bible, NIV Bible, Bible search, Bible verses, Scripture search, 66 books Bible, Zionix"
+        path="/bible"
+      />
       
       {/* Toast Notification */}
       {toastMessage && (
