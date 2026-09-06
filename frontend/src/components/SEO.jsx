@@ -18,9 +18,11 @@ export default function SEO({
 
   return (
     <Helmet>
-      {/* Primary Page Identity */}
+      {/* Primary Page Identity & Site Name */}
       <title>{title}</title>
       <meta name="title" content={title} />
+      <meta name="application-name" content="Zionix" />
+      <meta name="apple-mobile-web-app-title" content="Zionix" />
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
       

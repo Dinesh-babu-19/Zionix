@@ -32,8 +32,10 @@
     <!-- Canonical -->
     <link rel="canonical" href="https://zionix-nine.vercel.app/" />
 
-    <!-- Theme -->
+    <!-- Theme & App Name -->
     <meta name="theme-color" content="#041534" />
+    <meta name="application-name" content="Zionix" />
+    <meta name="apple-mobile-web-app-title" content="Zionix" />
 
     <!-- Favicon & Icons (Optimized for Google Search & Browsers) -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -86,16 +88,25 @@
       content="https://zionix-nine.vercel.app/og-image.png"
     />
 
-    <!-- Structured Data (Schema.org JSON-LD) -->
+    <!-- Structured Data (Schema.org JSON-LD for Google Site Name & AI Search Engines) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
+        "@id": "https://zionix-nine.vercel.app/#website",
         "name": "Zionix",
-        "alternateName": ["Zionix", "Zionix - Know Jesus. Know Life."],
+        "alternateName": [
+          "Zionix Christian Sanctuary",
+          "Zionix Platform",
+          "Zionix Ministry"
+        ],
         "url": "https://zionix-nine.vercel.app/",
-        "description": "Zionix is a Christian spiritual platform for Bible reading, daily devotionals, prayer, Gospel exploration, and spiritual growth.",
+        "description": "Zionix is a Christian spiritual platform offering daily Bible devotionals, a sacred community prayer wall, an interactive Holy Bible reader, and Gospel teachings.",
         "inLanguage": "en",
+        "publisher": {
+          "@type": "Organization",
+          "@id": "https://zionix-nine.vercel.app/#organization"
+        },
         "potentialAction": {
           "@type": "SearchAction",
           "target": "https://zionix-nine.vercel.app/bible?search={search_term_string}",
@@ -108,10 +119,21 @@
       {
         "@context": "https://schema.org",
         "@type": "Organization",
+        "@id": "https://zionix-nine.vercel.app/#organization",
         "name": "Zionix",
         "url": "https://zionix-nine.vercel.app/",
         "logo": "https://zionix-nine.vercel.app/logo.png",
-        "description": "Sharing the timeless message of Jesus Christ through modern design, daily scripture reflections, and prayer intercession."
+        "description": "Zionix shares the timeless message and hope of Jesus Christ through modern design, daily Scripture reflections, global prayer intercession, and accessible Bible study.",
+        "slogan": "Know Jesus. Know Life.",
+        "knowsAbout": [
+          "Christianity",
+          "Holy Bible",
+          "Bible Devotionals",
+          "Prayer Wall",
+          "Gospel of Jesus Christ",
+          "Scripture Study",
+          "Daily Bread"
+        ]
       }
     </script>
 

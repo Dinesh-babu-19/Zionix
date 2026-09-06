@@ -20,6 +20,52 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
+# AI Search & LLM Indexers (ChatGPT Search, Perplexity, Claude, Gemini, Copilot)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: GoogleOther
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: cohere-ai
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
 # XML Sitemap
 Sitemap: https://zionix-nine.vercel.app/sitemap.xml
 

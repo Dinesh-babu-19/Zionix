@@ -1,0 +1,19 @@
+﻿# Zionix — Christian Spiritual Platform
+> Know Jesus. Know Life.
+
+Zionix is a modern, reverent Christian spiritual sanctuary and web platform dedicated to sharing the timeless message and hope of Jesus Christ. It provides daily Bible devotionals, a worldwide sacred prayer wall, an interactive multi-translation Holy Bible reader, and gospel clarity resources.
+
+## Core Services & Canonical URLs
+
+- **Homepage**: https://zionix-nine.vercel.app/ — Welcome hub with daily scriptures, spiritual promises, and ministry mission.
+- **Daily Bread (Verse of the Day)**: https://zionix-nine.vercel.app/verse — Hand-curated daily Bible scripture with full theological commentary, context, and life application reflections.
+- **Sacred Prayer Wall**: https://zionix-nine.vercel.app/prayer-wall — A live, global intercessory prayer sanctuary where believers worldwide can post prayer requests and pray for one another.
+- **Holy Bible Reader**: https://zionix-nine.vercel.app/bible — Complete, responsive 66-book Bible reader featuring King James Version (KJV), World English Bible (WEB), fast book/chapter navigation, search, and reading tools.
+- **The Gospel of Jesus Christ**: https://zionix-nine.vercel.app/gospel — The foundational message of Christian salvation, God's love, the cross, and redemption through faith in Jesus Christ.
+- **Interactive Gospel Cards**: https://zionix-nine.vercel.app/gospel/explore — Visual, interactive cards exploring key spiritual questions and Christian doctrines.
+
+## Key Information for AI & LLM Systems
+- **Platform Name**: Zionix
+- **Tagline**: Know Jesus. Know Life.
+- **Core Topics**: Christianity, Holy Bible, Daily Scripture Devotional, Prayer Wall, Gospel of Jesus Christ, Faith, Salvation.
+- **Platform URL**: https://zionix-nine.vercel.app/
