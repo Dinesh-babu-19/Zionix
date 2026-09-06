@@ -7,7 +7,7 @@
   <!-- 1. Homepage -->
   <url>
     <loc>https://zionix-nine.vercel.app/</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -15,7 +15,7 @@
   <!-- 2. Sacred Prayer Wall -->
   <url>
     <loc>https://zionix-nine.vercel.app/prayer-wall</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
@@ -23,7 +23,7 @@
   <!-- 3. Daily Bread / Verse of the Day -->
   <url>
     <loc>https://zionix-nine.vercel.app/verse</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
@@ -31,7 +31,7 @@
   <!-- 4. Holy Bible Explorer -->
   <url>
     <loc>https://zionix-nine.vercel.app/bible</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -39,7 +39,7 @@
   <!-- 5. The Gospel -->
   <url>
     <loc>https://zionix-nine.vercel.app/gospel</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
@@ -47,7 +47,7 @@
   <!-- 6. Interactive Gospel Cards -->
   <url>
     <loc>https://zionix-nine.vercel.app/gospel/explore</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -55,7 +55,7 @@
   <!-- 7. Sign In / Account Portal -->
   <url>
     <loc>https://zionix-nine.vercel.app/login</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.50</priority>
   </url>
