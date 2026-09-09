@@ -632,6 +632,7 @@ function HeroGeometric({
                         animate="visible"
                     >
                         <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight font-display text-[#041534]">
+                            <span className="sr-only">Zionix — Christian Spiritual Sanctuary | </span>
                             <span className="bg-clip-text text-transparent bg-gradient-to-b from-[#041534] via-[#0b2b63] to-[#123e85]">
                                 {title1}
                             </span>

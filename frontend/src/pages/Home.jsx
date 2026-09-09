@@ -76,6 +76,17 @@ export default function Home() {
       {/* Feature Highlights (Bento grid) */}
       <section className="py-12 md:py-16 bg-background">
         <div className="max-w-container-max mx-auto px-margin-mobile">
+          <div ref={addToRefs} className="text-center mb-10">
+            <span className="font-label-caps text-xs uppercase tracking-[0.25em] text-secondary font-bold mb-2 block">
+              Spiritual Sanctuary
+            </span>
+            <h2 className="font-headline-md text-3xl sm:text-4xl text-primary font-bold mb-3">
+              Welcome to Zionix
+            </h2>
+            <p className="text-on-surface-variant max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+              A Christ-centered sanctuary dedicated to daily Scripture reflections, heartfelt prayer intercession, and Gospel exploration.
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
             {/* Card 1: The Gospel */}
             <div ref={addToRefs} className="bg-surface-container-lowest border border-outline-variant p-stack-md rounded-xl flex flex-col items-start transition-all hover:border-secondary group">
