@@ -144,9 +144,9 @@ export default function GospelExplore() {
   return (
     <main className="pt-24 pb-20 bg-background min-h-screen text-on-surface flex flex-col justify-between">
       <SEO
-        title="Interactive Gospel Journey | 5 Steps of Faith | Zionix"
+        title="Interactive Gospel Journey | 5 Steps of Faith | Zionaviel"
         description="An interactive visual exploration of God's redemptive story: Creation & Separation, The Savior, The Cross, The Victory, and Grace & Eternal Life."
-        keywords="Gospel journey, steps of faith, God's love, Jesus sacrifice, eternal life cards, Gospel exploration, Zionix"
+        keywords="Gospel journey, steps of faith, God's love, Jesus sacrifice, eternal life cards, Gospel exploration, Zionaviel"
         path="/gospel/explore"
       />
       <div className="max-w-[700px] w-full mx-auto px-margin-mobile flex-1 flex flex-col">

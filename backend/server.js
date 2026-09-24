@@ -546,13 +546,13 @@ async function broadcastDailyVerseToUsers(dailyVerse, additionalUsers = [], reqH
 
       <!-- Read on Site CTA (Always directs to deployed production website) -->
       <div style="text-align: center; margin-top: 28px;">
-        <a href="https://zionix-nine.vercel.app/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 13px 32px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-          Read & Listen on Zionix →
+        <a href="https://www.zionaviel.me/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 13px 32px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+          Read & Listen on Zionaviel →
         </a>
       </div>
 
       <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-        <p style="margin: 0;">You are receiving this spiritual encouragement because you are connected to Zionix.</p>
+        <p style="margin: 0;">You are receiving this spiritual encouragement because you are connected to Zionaviel.</p>
       </div>
     </div>
   `;
@@ -655,14 +655,14 @@ async function sendNewUserWelcomeEmail(user, isNew = true, reqHeaders = {}) {
 
       <!-- Read on Site CTA (Always directs to deployed production website) -->
       <div style="text-align: center; margin-top: 26px;">
-        <a href="https://zionix-nine.vercel.app/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-          Read & Listen on Zionix →
+        <a href="https://www.zionaviel.me/verse" style="display: inline-block; background-color: #041534; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+          Read & Listen on Zionaviel →
         </a>
       </div>
 
       <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-        <p style="margin: 0;">You received this welcome message because your email was signed in to Zionix.</p>
-        <p style="margin: 4px 0 0 0;">Zionix Ministry • "Know Jesus. Know Life."</p>
+        <p style="margin: 0;">You received this welcome message because your email was signed in to Zionaviel.</p>
+        <p style="margin: 4px 0 0 0;">Zionaviel Ministry • "Know Jesus. Know Life."</p>
       </div>
     </div>
   `;

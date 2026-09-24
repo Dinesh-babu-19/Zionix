@@ -87,7 +87,7 @@ export default function AuthModal() {
             <ShieldCheck size={28} />
           </div>
           <h2 className="font-headline-sm text-2xl font-bold text-primary">
-            Sign In to Zionix
+            Sign In to Zionaviel
           </h2>
           <p className="text-xs text-on-surface-variant max-w-xs mt-1 leading-relaxed">
             Please sign in to share scripture, post on the Prayer Wall, and receive daily spiritual nourishment.

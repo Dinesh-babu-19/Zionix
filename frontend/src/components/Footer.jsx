@@ -8,10 +8,10 @@ export default function Footer() {
           <div className="flex items-center gap-2 font-headline-md text-headline-md font-bold text-primary">
             <img 
               src="/logo.png" 
-              alt="Zionix Logo" 
+              alt="Zionaviel Logo" 
               className="h-8 w-auto mix-blend-multiply dark:invert dark:mix-blend-screen" 
             />
-            <span>Zionix</span>
+            <span>Zionaviel</span>
           </div>
           <p className="text-on-surface-variant max-w-sm font-body-md text-sm">
             Sharing the timeless message of Jesus Christ through modern design and accessible scripture.
@@ -30,7 +30,7 @@ export default function Footer() {
       </div>
       
       <div className="max-w-container-max mx-auto px-margin-mobile mt-stack-lg pt-stack-sm border-t border-outline-variant/30 text-on-surface-variant font-body-md text-sm">
-        © {new Date().getFullYear()} Zionix Ministry. All rights reserved.
+        © {new Date().getFullYear()} Zionaviel Ministry. All rights reserved.
       </div>
     </footer>
   );

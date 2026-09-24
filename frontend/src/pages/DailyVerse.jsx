@@ -83,14 +83,14 @@ export default function DailyVerse() {
 
     // Copy to clipboard for easy pasting
     try {
-      await navigator.clipboard.writeText(`${verseQuote}\n\nRead more on Zionix: ${pageUrl}`);
+      await navigator.clipboard.writeText(`${verseQuote}\n\nRead more on Zionaviel: ${pageUrl}`);
     } catch {
       // ignore clipboard error
     }
 
     if (platform === 'whatsapp') {
       const devotionSnippet = data.devotion ? `\n\n✨ *Morning Reflection:*\n${data.devotion.slice(0, 180)}...` : '';
-      const message = `📖 *Daily Bread — Zionix*\n\n"${data.verse}"\n— *${data.reference}* (${data.translation || 'ESV'})${devotionSnippet}\n\n🔗 *Read the full devotion on Zionix:*\n${pageUrl}`;
+      const message = `📖 *Daily Bread — Zionaviel*\n\n"${data.verse}"\n— *${data.reference}* (${data.translation || 'ESV'})${devotionSnippet}\n\n🔗 *Read the full devotion on Zionaviel:*\n${pageUrl}`;
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
       setCopiedBtn('whatsapp');
@@ -99,7 +99,7 @@ export default function DailyVerse() {
     } else if (platform === 'x') {
       const truncatedVerse = data.verse.length > 170 ? data.verse.slice(0, 165) + '...' : data.verse;
       const tweetText = `"${truncatedVerse}"\n— ${data.reference}`;
-      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(pageUrl)}&hashtags=${encodeURIComponent('DailyBread,BibleVerse,Zionix,Faith')}`;
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(pageUrl)}&hashtags=${encodeURIComponent('DailyBread,BibleVerse,Zionaviel,Faith')}`;
       window.open(twitterUrl, '_blank', 'noopener,noreferrer');
       setCopiedBtn('x');
       showShareToast('Opening X (Twitter) with your Daily Bread post!');
@@ -152,9 +152,9 @@ export default function DailyVerse() {
   return (
     <main className="pt-16">
       <SEO
-        title={data?.reference ? `Daily Bible Verse: ${data.reference} | Zionix` : "Daily Bible Verse & Morning Devotional | Zionix"}
-        description={data?.devotion ? `${data.reference} — "${data.verse.slice(0, 110)}..." Read today's Scripture reflection and daily living applications on Zionix.` : "Start your day with Scripture, biblical context, a thoughtful devotional reflection, and practical ways to live out God's Word."}
-        keywords="daily Bible verse, daily devotional, verse of the day, morning Bible devotional, Scripture reflection, Daily Bread, living it out today, Zionix"
+        title={data?.reference ? `Daily Bible Verse: ${data.reference} | Zionaviel` : "Daily Bible Verse & Morning Devotional | Zionaviel"}
+        description={data?.devotion ? `${data.reference} — "${data.verse.slice(0, 110)}..." Read today's Scripture reflection and daily living applications on Zionaviel.` : "Start your day with Scripture, biblical context, a thoughtful devotional reflection, and practical ways to live out God's Word."}
+        keywords="daily Bible verse, daily devotional, verse of the day, morning Bible devotional, Scripture reflection, Daily Bread, living it out today, Zionaviel"
         path="/verse"
       />
       {/* Hero Section */}
@@ -401,7 +401,7 @@ export default function DailyVerse() {
             {/* Story Card Mockup */}
             <div className={`my-5 p-6 rounded-2xl bg-gradient-to-br from-[#041534] to-[#1b2a4a] text-white text-center shadow-lg relative overflow-hidden transition-all duration-300 ${cardFlash ? 'ring-4 ring-white brightness-125 scale-[1.01]' : ''}`}>
               <div className="absolute top-3 right-3 text-[10px] font-bold tracking-widest uppercase text-white/50 font-label-caps">
-                Zionix Daily
+                Zionaviel Daily
               </div>
               <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-secondary-fixed block mb-2 font-label-caps">
                 Verse of the Day
@@ -417,7 +417,7 @@ export default function DailyVerse() {
             <div className="space-y-3">
               <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/40 text-xs text-on-surface-variant space-y-1">
                 <p className="font-semibold text-primary">📱 How to Share on Instagram:</p>
-                <p>1. The scripture and Zionix link have been copied to your clipboard.</p>
+                <p>1. The scripture and Zionaviel link have been copied to your clipboard.</p>
                 <p>2. Take a screenshot of the verse card above to post directly to your Story!</p>
               </div>
 

@@ -474,8 +474,8 @@ export default function AdminDailyVerse() {
     return (
       <div className="min-h-screen bg-background flex flex-col justify-center items-center px-4 py-12">
         <SEO
-          title="Developer Studio | Zionix"
-          description="Developer and administrative console for Zionix content management."
+          title="Developer Studio | Zionaviel"
+          description="Developer and administrative console for Zionaviel content management."
           path="/admin"
           noindex={true}
         />
@@ -550,7 +550,7 @@ export default function AdminDailyVerse() {
 
           <div className="mt-8 pt-6 border-t border-outline-variant/30 text-center">
             <span className="text-xs text-on-surface-variant/70">
-              Zionix Developer Console • Direct URL Only
+              Zionaviel Developer Console • Direct URL Only
             </span>
           </div>
         </div>
@@ -561,8 +561,8 @@ export default function AdminDailyVerse() {
   return (
     <div className="min-h-screen bg-background pb-20">
       <SEO
-        title="Developer Studio | Zionix"
-        description="Developer and administrative console for Zionix content management."
+        title="Developer Studio | Zionaviel"
+        description="Developer and administrative console for Zionaviel content management."
         path="/admin"
         noindex={true}
       />
@@ -575,7 +575,7 @@ export default function AdminDailyVerse() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-headline-sm font-bold text-primary text-base">Zionix Developer Console</span>
+                <span className="font-headline-sm font-bold text-primary text-base">Zionaviel Developer Console</span>
                 <span className="bg-secondary/15 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                   Daily Bread Admin
                 </span>
@@ -996,7 +996,7 @@ export default function AdminDailyVerse() {
                           Email Sender Credentials (Gmail / SMTP)
                         </h4>
                         <p className="text-xs text-on-surface-variant mt-1">
-                          Configure the sender email so Zionix automatically sends Daily Bread to <strong>every new believer and all registered believers individually</strong> upon every change.
+                          Configure the sender email so Zionaviel automatically sends Daily Bread to <strong>every new believer and all registered believers individually</strong> upon every change.
                         </p>
                       </div>
 
@@ -1366,7 +1366,7 @@ export default function AdminDailyVerse() {
                             </span>
 
                             <a
-                              href={`mailto:${req.email}?subject=${encodeURIComponent(`We are praying for you - Zionix Prayer Team`)}&body=${encodeURIComponent(`Dear ${req.name},\n\nWe received your prayer request regarding "${req.category}". Our prayer team at Zionix is lifting your needs before the Lord Jesus today.\n\n"The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you." — Numbers 6:24-25\n\nIn Christ,\nZionix Prayer Ministry`)}`}
+                              href={`mailto:${req.email}?subject=${encodeURIComponent(`We are praying for you - Zionaviel Prayer Team`)}&body=${encodeURIComponent(`Dear ${req.name},\n\nWe received your prayer request regarding "${req.category}". Our prayer team at Zionaviel is lifting your needs before the Lord Jesus today.\n\n"The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you." — Numbers 6:24-25\n\nIn Christ,\nZionaviel Prayer Ministry`)}`}
                               className="px-4 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                             >
                               <Mail size={13} /> Reply via Email

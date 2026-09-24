@@ -1,12 +1,12 @@
 import { Helmet } from 'react-helmet-async';
 
-const SITE_URL = 'https://zionix-nine.vercel.app';
+const SITE_URL = 'https://www.zionaviel.me';
 const DEFAULT_OG_IMAGE = '/og-image.png';
 
 export default function SEO({
-  title = 'Zionix | Know Jesus. Know Life.',
-  description = 'Zionix is a Christian spiritual platform for daily Bible devotions, Scripture reading, prayer, Gospel exploration, and growing in faith.',
-  keywords = 'Christian website, Bible, Bible study, daily devotional, daily Bible verse, prayer, prayer wall, Gospel, Jesus Christ, Scripture, Christian devotion, Bible reading, Christian faith',
+  title = 'Zionaviel | Know Jesus. Know Life.',
+  description = 'Zionaviel is a Christian spiritual platform for daily Bible devotions, Scripture reading, prayer, Gospel exploration, and growing in faith.',
+  keywords = 'Christian website, Bible, Bible study, daily devotional, daily Bible verse, prayer, prayer wall, Gospel, Jesus Christ, Scripture, Christian devotion, Bible reading, Christian faith, Zionaviel',
   path = '/',
   image = DEFAULT_OG_IMAGE,
   type = 'website',
@@ -21,8 +21,8 @@ export default function SEO({
       {/* Primary Page Identity & Site Name */}
       <title>{title}</title>
       <meta name="title" content={title} />
-      <meta name="application-name" content="Zionix" />
-      <meta name="apple-mobile-web-app-title" content="Zionix" />
+      <meta name="application-name" content="Zionaviel" />
+      <meta name="apple-mobile-web-app-title" content="Zionaviel" />
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
       
@@ -38,7 +38,7 @@ export default function SEO({
 
       {/* Open Graph / Facebook / WhatsApp / LinkedIn */}
       <meta property="og:type" content={type} />
-      <meta property="og:site_name" content="Zionix" />
+      <meta property="og:site_name" content="Zionaviel" />
       <meta property="og:url" content={url} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />

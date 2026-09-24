@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
     if (!userData) return null;
     const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
     if (userData.loginTimestamp && Date.now() - userData.loginTimestamp > THREE_DAYS_MS) {
+      localStorage.removeItem('zionaviel_user');
       localStorage.removeItem('zionix_user');
       return null;
     }
@@ -15,7 +16,7 @@ export function AuthProvider({ children }) {
 
   const [user, setUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('zionix_user');
+      const stored = localStorage.getItem('zionaviel_user') || localStorage.getItem('zionix_user');
       if (stored) {
         const parsed = JSON.parse(stored);
         return checkSessionExpiry(parsed);
@@ -32,7 +33,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const handleAuthChange = () => {
       try {
-        const stored = localStorage.getItem('zionix_user');
+        const stored = localStorage.getItem('zionaviel_user') || localStorage.getItem('zionix_user');
         if (stored) {
           const parsed = JSON.parse(stored);
           setUser(checkSessionExpiry(parsed));
@@ -58,7 +59,8 @@ export function AuthProvider({ children }) {
       ...userData,
       loginTimestamp: Date.now()
     };
-    localStorage.setItem('zionix_user', JSON.stringify(userToSave));
+    localStorage.setItem('zionaviel_user', JSON.stringify(userToSave));
+    localStorage.removeItem('zionix_user');
     setUser(userToSave);
     window.dispatchEvent(new Event('auth-change'));
     setIsAuthModalOpen(false);
@@ -75,6 +77,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    localStorage.removeItem('zionaviel_user');
     localStorage.removeItem('zionix_user');
     setUser(null);
     window.dispatchEvent(new Event('auth-change'));

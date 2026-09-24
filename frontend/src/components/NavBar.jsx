@@ -41,11 +41,11 @@ export default function NavBar() {
         >
           <img 
             src="/logo.png" 
-            alt="Zionix Logo" 
+            alt="Zionaviel Logo" 
             className="h-8 w-auto mix-blend-multiply dark:invert dark:mix-blend-screen transition-transform duration-300 group-hover:scale-105" 
           />
           <span className="font-headline-sm text-[20px] font-bold text-primary dark:text-primary-fixed">
-            Zionix
+            Zionaviel
           </span>
           <span className="hidden min-[450px]:inline-block h-4 w-[1px] bg-outline-variant/60 mx-0.5"></span>
           <span className="hidden min-[450px]:inline-block text-[11px] font-bold text-secondary uppercase tracking-[0.18em] font-label-caps self-center pt-0.5 whitespace-nowrap">

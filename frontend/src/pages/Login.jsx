@@ -146,9 +146,9 @@ export default function Login() {
   return (
     <main className="pt-24 pb-20 bg-background min-h-[calc(100vh-64px)] flex items-center justify-center text-on-surface">
       <SEO
-        title="Sign In | Zionix Ministry"
-        description="Sign in to your Zionix account to save prayer burdens, customize your devotional journey, and stay connected with the Christian community."
-        keywords="Zionix login, Christian account, sign in, prayer account"
+        title="Sign In | Zionaviel Ministry"
+        description="Sign in to your Zionaviel account to save prayer burdens, customize your devotional journey, and stay connected with the Christian community."
+        keywords="Zionaviel login, Christian account, sign in, prayer account"
         path="/login"
       />
       <div className="max-w-[460px] w-full mx-margin-mobile">
@@ -168,7 +168,7 @@ export default function Login() {
               <ShieldCheck size={28} />
             </div>
             <h1 className="font-display-lg text-2xl font-bold text-primary mt-2">
-              Sign in to Zionix
+              Sign in to Zionaviel
             </h1>
             <p className="font-body-md text-sm text-on-surface-variant max-w-[300px]">
               Access scriptures, explore the Gospel, and save your daily bread.

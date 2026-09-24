@@ -363,7 +363,7 @@ export default function BibleExplorer() {
   // Share Link / Copy Verse
   const handleShare = () => {
     if (!bibleData) return;
-    const shareText = `${bibleData.book} ${bibleData.chapter} (${activeTranslation}) — Read online at Zionix.`;
+    const shareText = `${bibleData.book} ${bibleData.chapter} (${activeTranslation}) — Read online at Zionaviel.`;
     navigator.clipboard.writeText(window.location.href);
     showToast('Page link copied to clipboard!');
   };
@@ -458,9 +458,9 @@ export default function BibleExplorer() {
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'dark bg-[#121212] text-[#e2e2e0]' : 'bg-background text-on-surface'}`}>
       <SEO
-        title={selectedBook && selectedChapter ? `${BIBLE_BOOKS_MAP[selectedBook]?.name || 'Bible'} Chapter ${selectedChapter} (${activeTranslation}) | Read Bible Online | Zionix` : "Online Bible | Read Scripture in KJV, ESV & NIV | Zionix"}
-        description={selectedBook && selectedChapter ? `Read and study ${BIBLE_BOOKS_MAP[selectedBook]?.name || 'the Bible'} Chapter ${selectedChapter} in ${activeTranslation} with cross-references, search, audio reader, and bookmarking tools on Zionix.` : "Read and explore the Bible online with Zionix. Search Scripture across all 66 books and explore KJV, ESV, and NIV translations."}
-        keywords="read Bible online, KJV Bible online, ESV Bible, NIV Bible, Bible search, Bible verses, Scripture search, 66 books Bible, Zionix"
+        title={selectedBook && selectedChapter ? `${BIBLE_BOOKS_MAP[selectedBook]?.name || 'Bible'} Chapter ${selectedChapter} (${activeTranslation}) | Read Bible Online | Zionaviel` : "Online Bible | Read Scripture in KJV, ESV & NIV | Zionaviel"}
+        description={selectedBook && selectedChapter ? `Read and study ${BIBLE_BOOKS_MAP[selectedBook]?.name || 'the Bible'} Chapter ${selectedChapter} in ${activeTranslation} with cross-references, search, audio reader, and bookmarking tools on Zionaviel.` : "Read and explore the Bible online with Zionaviel. Search Scripture across all 66 books and explore KJV, ESV, and NIV translations."}
+        keywords="read Bible online, KJV Bible online, ESV Bible, NIV Bible, Bible search, Bible verses, Scripture search, 66 books Bible, Zionaviel"
         path="/bible"
       />
       
@@ -479,12 +479,12 @@ export default function BibleExplorer() {
         <Link to="/" className="mb-stack-md px-2 block group">
           <div className="flex items-center gap-2 text-on-surface-variant group-hover:text-secondary transition-colors mb-2">
             <ArrowLeft size={12} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] font-label-caps">Zionix Home</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] font-label-caps">Zionaviel Home</span>
           </div>
           <div className="flex items-center gap-2">
             <img 
               src="/logo.png" 
-              alt="Zionix Logo" 
+              alt="Zionaviel Logo" 
               className="h-7 w-auto mix-blend-multiply dark:invert dark:mix-blend-screen" 
             />
             <h2 className="font-headline-sm text-headline-sm text-primary">Holy Bible</h2>
@@ -726,11 +726,11 @@ export default function BibleExplorer() {
                 </Link>
                 <img 
                   src="/logo.png" 
-                  alt="Zionix Logo" 
+                  alt="Zionaviel Logo" 
                   className="h-6 w-auto mix-blend-multiply dark:invert dark:mix-blend-screen shrink-0" 
                 />
                 <span className="hidden sm:inline font-headline-sm text-sm md:text-base font-semibold text-primary dark:text-primary-fixed tracking-wide whitespace-nowrap">
-                  Zionix Bible
+                  Zionaviel Bible
                 </span>
 
                 {/* Mobile / Tablet Book & Chapter Quick Selector */}
@@ -1199,11 +1199,11 @@ export default function BibleExplorer() {
         <footer className="w-full py-stack-lg border-t border-outline-variant bg-surface-container-low dark:bg-zinc-900 transition-colors">
           <div className="max-w-container-max mx-auto px-margin-mobile flex flex-col md:flex-row justify-between items-start gap-stack-md text-left">
             <div>
-              <h3 className="font-headline-md text-headline-md font-bold text-primary mb-2">Zionix</h3>
+              <h3 className="font-headline-md text-headline-md font-bold text-primary mb-2">Zionaviel</h3>
               <p className="font-body-md text-sm text-on-tertiary-fixed-variant opacity-70">Spreading the Gospel through clarity and reverence.</p>
             </div>
             <div className="flex flex-col gap-4">
-              <p className="text-on-tertiary-fixed-variant opacity-50 text-xs">© 2026 Zionix Ministry. All rights reserved.</p>
+              <p className="text-on-tertiary-fixed-variant opacity-50 text-xs">© 2026 Zionaviel Ministry. All rights reserved.</p>
             </div>
           </div>
         </footer>

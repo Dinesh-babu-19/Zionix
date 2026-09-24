@@ -1,4 +1,4 @@
-# Robots.txt for Zionix — Search Engine Crawling Rules
+# Robots.txt for Zionaviel — Search Engine Crawling Rules
 User-agent: *
 Allow: /
 Disallow: /admin
@@ -67,5 +67,5 @@ Disallow: /admin
 Disallow: /api/
 
 # XML Sitemap
-Sitemap: https://zionix-nine.vercel.app/sitemap.xml
+Sitemap: https://www.zionaviel.me/sitemap.xml
 

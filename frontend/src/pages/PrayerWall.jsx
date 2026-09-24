@@ -128,9 +128,9 @@ export default function PrayerWall() {
   return (
     <main className="pt-20 pb-24 bg-background min-h-screen text-on-surface">
       <SEO
-        title="Christian Prayer Wall & Intercession Requests | Zionix"
-        description="Share your prayer requests and burdens on the Zionix Sacred Prayer Wall. Join believers worldwide in faithful agreement and intercession."
-        keywords="online prayer, Christian prayer, prayer requests, prayer wall, intercessory prayer, prayer for healing, prayer support, Zionix"
+        title="Christian Prayer Wall & Intercession Requests | Zionaviel"
+        description="Share your prayer requests and burdens on the Zionaviel Sacred Prayer Wall. Join believers worldwide in faithful agreement and intercession."
+        keywords="online prayer, Christian prayer, prayer requests, prayer wall, intercessory prayer, prayer for healing, prayer support, Zionaviel"
         path="/prayer-wall"
       />
       {/* Hero Section */}

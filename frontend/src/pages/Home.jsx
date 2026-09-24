@@ -53,13 +53,13 @@ export default function Home() {
   return (
     <main>
       <SEO
-        title="Zionix | Know Jesus. Know Life. — Daily Bread, Prayer Wall & Holy Bible"
+        title="Zionaviel | Know Jesus. Know Life. — Daily Bread, Prayer Wall & Holy Bible"
         description="Discover the timeless hope of Jesus Christ. Access daily Scripture reflections, submit prayer requests on our sacred Prayer Wall, and explore the Holy Bible."
-        keywords="Christian website, Bible, daily devotional, daily Bible verse, prayer, prayer wall, Gospel, Jesus Christ, Scripture, Christian devotion, Bible reading, Christian faith, Zionix"
+        keywords="Christian website, Bible, daily devotional, daily Bible verse, prayer, prayer wall, Gospel, Jesus Christ, Scripture, Christian devotion, Bible reading, Christian faith, Zionaviel"
         path="/"
       />
       {/* Hero Section */}
-      <HeroGeometric badge="Zionix" title1="Jesus Christ" title2="The Way, The Truth, & The Life">
+      <HeroGeometric badge="Zionaviel" title1="Jesus Christ" title2="The Way, The Truth, & The Life">
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
           <Link to="/gospel" className="bg-primary text-center text-on-primary px-8 py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-primary-container transition-all active:scale-95 w-full md:w-auto shadow-md">
             Explore the Gospel
@@ -81,7 +81,7 @@ export default function Home() {
               Spiritual Sanctuary
             </span>
             <h2 className="font-headline-md text-3xl sm:text-4xl text-primary font-bold mb-3">
-              Welcome to Zionix
+              Welcome to Zionaviel
             </h2>
             <p className="text-on-surface-variant max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
               A Christ-centered sanctuary dedicated to daily Scripture reflections, heartfelt prayer intercession, and Gospel exploration.
