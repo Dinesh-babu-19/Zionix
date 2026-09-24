@@ -217,7 +217,7 @@ export default function NavBar() {
               onClick={() => handleMobileNavLinkClick('/login')} 
               className="block py-2 text-primary font-bold border-t border-outline-variant/20 mt-2"
             >
-              Sign In
+              Log In/Sign up
             </NavLink>
           )}
         </div>
