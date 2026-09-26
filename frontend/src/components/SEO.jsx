@@ -33,8 +33,10 @@ export default function SEO({
       />
       {!noindex && <meta name="googlebot" content="index, follow" />}
       
-      {/* Canonical URL */}
+      {/* Canonical URL & Image Source */}
       <link rel="canonical" href={url} />
+      <meta name="image" content={imageUrl} />
+      <link rel="image_src" href={imageUrl} />
 
       {/* Open Graph / Facebook / WhatsApp / LinkedIn */}
       <meta property="og:type" content={type} />
