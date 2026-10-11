@@ -12,6 +12,7 @@ import AdminDailyVerse from './pages/AdminDailyVerse';
 import PrayerWall from './pages/PrayerWall';
 import { AuthProvider } from './context/AuthContext';
 import AuthModal from './components/AuthModal';
+import ChatbotWidget from './components/chatbot/ChatbotWidget';
 import './App.css';
 
 
@@ -22,6 +23,7 @@ function App() {
       <Router>
         <ScrollToTop />
         <AuthModal />
+        <ChatbotWidget />
         <Routes>
           {/* Standard Layout Pages */}
           <Route path="/" element={<Layout><Home /></Layout>} />

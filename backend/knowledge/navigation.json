@@ -1,0 +1,39 @@
+{
+  "routes": [
+    {
+      "name": "Home Sanctuary",
+      "path": "/",
+      "description": "Zionix homepage introducing daily features, scriptures, and quick portal links."
+    },
+    {
+      "name": "Bible Explorer",
+      "path": "/bible",
+      "description": "Full 66-book Old & New Testament Bible reader with search and navigation."
+    },
+    {
+      "name": "Daily Bread & Reflections",
+      "path": "/verse",
+      "description": "Scripture of the Day, Morning Reflection, Living It Out, Audio, and Archives."
+    },
+    {
+      "name": "Prayer Wall",
+      "path": "/prayer-wall",
+      "description": "Communal and private prayer request submission and intercession wall."
+    },
+    {
+      "name": "Gospel Clarity",
+      "path": "/gospel",
+      "description": "Biblical foundation of the gospel, salvation, faith, and grace."
+    },
+    {
+      "name": "Gospel Topics Explorer",
+      "path": "/gospel/explore",
+      "description": "Explore 9 essential Christian doctrines with scripture references."
+    },
+    {
+      "name": "Account / Sign In",
+      "path": "/login",
+      "description": "Google OAuth login and subscription management."
+    }
+  ]
+}

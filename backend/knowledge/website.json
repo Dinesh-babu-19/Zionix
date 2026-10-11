@@ -1,0 +1,18 @@
+{
+  "name": "Zionix",
+  "aliases": ["Zionaviel", "Zionvaiel"],
+  "tagline": "An elegant, modern sanctuary for daily scripture study, communal prayer, and gospel exploration.",
+  "description": "Zionix is a full-stack Christian spiritual portal that bridges timeless biblical truths with a modern, serene web experience. Its mission is to nourish believers and seekers with daily spiritual nourishment, scripture study, communal intercession, and gospel clarity.",
+  "corePillars": [
+    "Daily Scripture & Morning Devotionals",
+    "Comprehensive 66-Book Bible Explorer & Search",
+    "Interactive Community Prayer Wall with Confidentiality Controls",
+    "Gospel Clarity & Scripture-Anchored Christian Foundations"
+  ],
+  "experience": "Designed to provide an intuitive, peaceful, distraction-free, and uplifting sanctuary for personal and communal faith.",
+  "socialMedia": {
+    "instagram": "https://www.instagram.com/zionaviel30/",
+    "youtube": "https://www.youtube.com/@Zionaviel"
+  },
+  "developer": "Crafted with modern web technologies (React 19, Vite, Tailwind CSS, Express, Node.js)."
+}

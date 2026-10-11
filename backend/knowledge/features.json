@@ -1,0 +1,40 @@
+{
+  "features": [
+    {
+      "id": "daily_bread",
+      "title": "Daily Bread & Morning Reflection",
+      "route": "/verse",
+      "summary": "Fresh daily scripture verse, rich theological context, morning devotional reflection, 3 actionable 'Living It Out' application points, text-to-speech audio, WhatsApp sharing, and archive of recent reflections."
+    },
+    {
+      "id": "bible_explorer",
+      "title": "Comprehensive Bible Explorer",
+      "route": "/bible",
+      "summary": "Complete 66-book Old and New Testament reader with lightning-fast full-text search, book and chapter navigation, and adjustable reading text sizes."
+    },
+    {
+      "id": "prayer_wall",
+      "title": "Interactive Prayer Wall",
+      "route": "/prayer-wall",
+      "summary": "Community intercession wall where believers can submit prayer requests with category selection and confidentiality controls (public for community prayer or private for pastoral team)."
+    },
+    {
+      "id": "gospel_clarity",
+      "title": "Gospel Clarity & Christian Foundations",
+      "route": "/gospel",
+      "summary": "Clear, scripture-anchored explorations of core Christian doctrines including salvation, grace, faith, repentance, Jesus Christ, and eternal life."
+    },
+    {
+      "id": "gospel_topics",
+      "title": "Searchable Theological Topics",
+      "route": "/gospel/explore",
+      "summary": "Explore foundational topics and questions regarding Christian theology with dedicated scripture references and insights."
+    },
+    {
+      "id": "user_profiles",
+      "title": "User Profiles & Authentication",
+      "route": "/login",
+      "summary": "Single-click Google OAuth sign-in and email subscription to save bookmarks and receive daily devotionals."
+    }
+  ]
+}

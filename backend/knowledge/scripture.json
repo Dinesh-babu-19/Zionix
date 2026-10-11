@@ -1,0 +1,18 @@
+{
+  "topic": "scripture",
+  "title": "Scripture & Daily Bread",
+  "route": "/verse",
+  "facts": [
+    "Zionix features a dedicated Daily Bread & Scripture of the Day section at /verse.",
+    "Each day brings a fresh Bible verse presented with rich theological context.",
+    "Accompanying devotional reflections connect eternal Scripture to contemporary everyday life.",
+    "'Living It Out' provides three practical, actionable bullet points to apply biblical truth during your day.",
+    "Audio support allows visitors to listen to the reflection via text-to-speech.",
+    "Devotionals can be shared directly with family and friends on WhatsApp with one click.",
+    "A Recent Reflections archive preserves past days' devotionals so visitors can re-read and reflect anytime."
+  ],
+  "rules": [
+    "Never invent or hallucinate today's verse if dynamic data is unavailable.",
+    "Direct visitors to /verse to read today's actual live Scripture of the Day."
+  ]
+}

@@ -1,0 +1,339 @@
+{
+  "categories": [
+    {
+      "name": "General",
+      "icon": "sparkles",
+      "questions": [
+        {
+          "question": "What is Zionix?",
+          "answer": "Zionix is an elegant, modern Christian spiritual platform designed for daily Scripture study, devotional reflection, communal prayer, and gospel exploration. It bridges timeless biblical truths with a peaceful web experience.",
+          "route": "/",
+          "actionLabel": "Explore Zionix",
+          "followUps": [
+            "What features are available on Zionix?",
+            "Where can I read the Bible?",
+            "How does the Prayer Wall work?"
+          ]
+        },
+        {
+          "question": "What features are available on Zionix?",
+          "answer": "Zionix provides five primary features: 1) Daily Bread & Morning Reflections, 2) Comprehensive 66-Book Bible Explorer with search, 3) Interactive Community Prayer Wall with privacy controls, 4) Gospel Clarity & Foundations, and 5) Searchable Theological Topics.",
+          "route": "/",
+          "actionLabel": "View Features",
+          "followUps": [
+            "Where can I read the Bible?",
+            "What is Scripture of the Day?",
+            "How can I submit a prayer request?"
+          ]
+        },
+        {
+          "question": "Who is Zionix for?",
+          "answer": "Zionix is designed for both believers seeking daily spiritual nourishment and discipleship, as well as seekers exploring the foundational truths of Christianity.",
+          "route": "/",
+          "actionLabel": "Start Exploring",
+          "followUps": [
+            "What is the Gospel section?",
+            "Where can I read the Bible?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Scripture",
+      "icon": "book-open",
+      "questions": [
+        {
+          "question": "Where can I read the Bible?",
+          "answer": "You can read the entire Bible using Zionix's full-screen Bible Explorer. It includes all 66 books across the Old and New Testaments with chapter-by-chapter navigation.",
+          "route": "/bible",
+          "actionLabel": "Open Bible Explorer",
+          "followUps": [
+            "Can I search the Bible on Zionix?",
+            "How many books are in the Bible Explorer?",
+            "Can I change the text size while reading?"
+          ]
+        },
+        {
+          "question": "Can I search the Bible?",
+          "answer": "Yes! Zionix features a lightning-fast full-text search engine in the Bible Explorer that lets you search any word, phrase, or scripture reference across all 66 books instantly.",
+          "route": "/bible",
+          "actionLabel": "Search Scripture",
+          "followUps": [
+            "Where can I read the Bible?",
+            "Can I read the Old Testament?",
+            "Can I read the New Testament?"
+          ]
+        },
+        {
+          "question": "How many books are available in the Bible Explorer?",
+          "answer": "All 66 books of the Holy Bible are available—39 books of the Old Testament and 27 books of the New Testament.",
+          "route": "/bible",
+          "actionLabel": "Open Bible Reader",
+          "followUps": [
+            "Can I search the Bible?",
+            "Can I navigate between chapters?"
+          ]
+        },
+        {
+          "question": "Can I read the Old and New Testaments?",
+          "answer": "Yes. You can switch effortlessly between the Old Testament and the New Testament, pick any book, and flip through chapters seamlessly.",
+          "route": "/bible",
+          "actionLabel": "Read Scripture",
+          "followUps": [
+            "Can I change the text size?",
+            "Can I search for a Bible verse?"
+          ]
+        },
+        {
+          "question": "Can I change the reading text size?",
+          "answer": "Yes, the Bible Explorer includes responsive typography controls so you can increase or decrease font size for comfortable reading on mobile, tablet, or desktop.",
+          "route": "/bible",
+          "actionLabel": "Open Bible Explorer",
+          "followUps": [
+            "Where can I read the Bible?",
+            "Can I search the Bible?"
+          ]
+        },
+        {
+          "question": "How do I find a specific Bible verse?",
+          "answer": "You can select the book and chapter directly from the Bible Explorer menu, or use the top search bar to type keywords or book references.",
+          "route": "/bible",
+          "actionLabel": "Go to Bible Explorer",
+          "followUps": [
+            "Can I search the Bible?",
+            "Where can I read the Bible?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Devotionals",
+      "icon": "sun",
+      "questions": [
+        {
+          "question": "What is the Scripture of the Day?",
+          "answer": "The Scripture of the Day is a fresh daily verse curated with theological context, accompanied by a Morning Reflection and practical application points in the Daily Bread section.",
+          "route": "/verse",
+          "actionLabel": "View Daily Bread",
+          "followUps": [
+            "What is the Morning Reflection?",
+            "What is Living It Out?",
+            "Can I read previous reflections?"
+          ]
+        },
+        {
+          "question": "What is the Morning Reflection?",
+          "answer": "The Morning Reflection is a curated daily devotional that connects the day's Scripture verse to everyday contemporary life, offering spiritual perspective and encouragement.",
+          "route": "/verse",
+          "actionLabel": "Read Today's Reflection",
+          "followUps": [
+            "What is Living It Out?",
+            "Can I listen to the devotional?",
+            "Can I share a devotional?"
+          ]
+        },
+        {
+          "question": "What is 'Living It Out'?",
+          "answer": "'Living It Out' provides three practical, actionable bullet points designed to help you apply biblical truth to your thoughts, habits, and relationships throughout the day.",
+          "route": "/verse",
+          "actionLabel": "See Living It Out",
+          "followUps": [
+            "What is the Morning Reflection?",
+            "Can I share a devotional?",
+            "Where can I find previous reflections?"
+          ]
+        },
+        {
+          "question": "Can I listen to the devotional audio?",
+          "answer": "Yes! The Daily Bread page features a built-in text-to-speech audio reader so you can listen hands-free while starting your morning.",
+          "route": "/verse",
+          "actionLabel": "Listen to Devotional",
+          "followUps": [
+            "Can I share a devotional?",
+            "What is the Morning Reflection?"
+          ]
+        },
+        {
+          "question": "Can I share a devotional on WhatsApp?",
+          "answer": "Yes. There is a convenient WhatsApp share button on the Daily Bread page that lets you send today's scripture and reflection directly to family, friends, or prayer groups.",
+          "route": "/verse",
+          "actionLabel": "View & Share Devotional",
+          "followUps": [
+            "Where can I find previous reflections?",
+            "What is the Scripture of the Day?"
+          ]
+        },
+        {
+          "question": "Where can I find previous reflections?",
+          "answer": "You can browse past devotionals in the 'Recent Reflections' archive located directly beneath today's reflection on the Daily Bread page.",
+          "route": "/verse",
+          "actionLabel": "Browse Reflections Archive",
+          "followUps": [
+            "What is the Morning Reflection?",
+            "What is Living It Out?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Prayer",
+      "icon": "heart",
+      "questions": [
+        {
+          "question": "How can I submit a prayer request?",
+          "answer": "You can submit a prayer request on the Prayer Wall at /prayer-wall. Choose a category (like Healing, Family, or Guidance), type your petition, and choose whether to make it public or private.",
+          "route": "/prayer-wall",
+          "actionLabel": "Go to Prayer Wall",
+          "followUps": [
+            "Can I make my prayer private?",
+            "Can other people see my prayer?",
+            "What happens after I submit a prayer?"
+          ]
+        },
+        {
+          "question": "Can I make my prayer private?",
+          "answer": "Yes. Zionix provides confidentiality toggles. You can mark your request 'Private', which means it will not appear on the public wall and will only be shared with the core pastoral team.",
+          "route": "/prayer-wall",
+          "actionLabel": "Submit Private Prayer",
+          "followUps": [
+            "Can other people see my prayer?",
+            "What happens after I submit a prayer?",
+            "How can I submit a prayer request?"
+          ]
+        },
+        {
+          "question": "Can other people see my prayer?",
+          "answer": "Only if you mark it 'Public'. Public requests appear on the community Prayer Wall so other believers can stand in agreement with you. If marked 'Private', it remains confidential for the pastoral team.",
+          "route": "/prayer-wall",
+          "actionLabel": "Visit Prayer Wall",
+          "followUps": [
+            "Can I make my prayer private?",
+            "What happens after I submit a prayer?"
+          ]
+        },
+        {
+          "question": "What happens after I submit a prayer?",
+          "answer": "When you submit a request, an automated email notification is dispatched to the prayer team so they can intercede for you. If marked public, other believers on Zionix can also pray for your request.",
+          "route": "/prayer-wall",
+          "actionLabel": "Open Prayer Wall",
+          "followUps": [
+            "How can I submit a prayer request?",
+            "Can I make my prayer private?"
+          ]
+        },
+        {
+          "question": "Can the community pray for my request?",
+          "answer": "Yes! Marking your prayer request as 'Public' publishes it to the community Prayer Wall, where visitors can read and join in agreement with your burden.",
+          "route": "/prayer-wall",
+          "actionLabel": "View Community Prayers",
+          "followUps": [
+            "How can I submit a prayer request?",
+            "Can I make my prayer private?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Gospel",
+      "icon": "compass",
+      "questions": [
+        {
+          "question": "Where can I learn about salvation?",
+          "answer": "You can explore the biblical teaching on salvation in Zionix's Gospel Clarity section and the Gospel Topics Explorer, which explain God's plan of redemption through Jesus Christ.",
+          "route": "/gospel/explore",
+          "actionLabel": "Learn About Salvation",
+          "followUps": [
+            "What does Zionix teach about grace?",
+            "Where can I learn about faith?",
+            "Who is Jesus according to Zionix?"
+          ]
+        },
+        {
+          "question": "What does Zionix teach about grace?",
+          "answer": "Zionix teaches that grace is God's unmerited divine favor—a free gift that cannot be earned by human works, but is received with a humble heart through Jesus Christ.",
+          "route": "/gospel/explore",
+          "actionLabel": "Explore Grace",
+          "followUps": [
+            "Where can I learn about faith?",
+            "Where can I learn about salvation?",
+            "What is the Gospel?"
+          ]
+        },
+        {
+          "question": "What is the Gospel according to Zionix?",
+          "answer": "The Gospel is the good news of salvation and reconciliation with God through the life, death on the cross, and victorious resurrection of Jesus Christ.",
+          "route": "/gospel",
+          "actionLabel": "Read Gospel Clarity",
+          "followUps": [
+            "Where can I learn about salvation?",
+            "What is faith?",
+            "What is repentance?"
+          ]
+        },
+        {
+          "question": "What Christian foundations does Zionix cover?",
+          "answer": "Zionix covers 9 foundational topics: Who is Jesus?, What is the Gospel?, Salvation, Grace, Repentance, Faith, Resurrection, Eternal Life, and How to Pray.",
+          "route": "/gospel/explore",
+          "actionLabel": "Explore All 9 Topics",
+          "followUps": [
+            "Where can I learn about salvation?",
+            "What does Zionix teach about grace?",
+            "Where can I read the Bible?"
+          ]
+        },
+        {
+          "question": "Where can I find theological topics on Zionix?",
+          "answer": "You can browse all theological topics in the Gospel Explore section at /gospel/explore, where each topic is anchored in clear Scripture references.",
+          "route": "/gospel/explore",
+          "actionLabel": "Browse Topics",
+          "followUps": [
+            "What Christian foundations does Zionix cover?",
+            "Where can I learn about salvation?"
+          ]
+        }
+      ]
+    }
+  ],
+  "initialQuickQuestions": [
+    {
+      "category": "Scripture",
+      "question": "Where can I read the Bible?",
+      "icon": "book-open"
+    },
+    {
+      "category": "Scripture",
+      "question": "Can I search for a Bible verse?",
+      "icon": "search"
+    },
+    {
+      "category": "Devotionals",
+      "question": "What is the Morning Reflection?",
+      "icon": "sun"
+    },
+    {
+      "category": "Devotionals",
+      "question": "Where can I find previous reflections?",
+      "icon": "archive"
+    },
+    {
+      "category": "Prayer",
+      "question": "How can I submit a prayer request?",
+      "icon": "heart"
+    },
+    {
+      "category": "Prayer",
+      "question": "Can I make my prayer private?",
+      "icon": "shield"
+    },
+    {
+      "category": "Gospel",
+      "question": "Where can I learn about salvation?",
+      "icon": "compass"
+    },
+    {
+      "category": "Gospel",
+      "question": "What Christian foundations does Zionix cover?",
+      "icon": "sparkles"
+    }
+  ]
+}

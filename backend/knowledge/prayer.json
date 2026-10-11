@@ -1,0 +1,19 @@
+{
+  "topic": "prayer",
+  "title": "Interactive Prayer Wall",
+  "route": "/prayer-wall",
+  "facts": [
+    "Zionix features a sacred, interactive Prayer Wall at /prayer-wall for community and personal intercession.",
+    "Anyone can submit a prayer petition with custom categories (such as Healing, Guidance, Family, Thanksgiving, Spiritual Growth).",
+    "Users have granular confidentiality controls: prayers can be set to Public or Private.",
+    "Public prayers are displayed on the community prayer wall so brothers and sisters in Christ can join together in agreement.",
+    "Private prayers are strictly confidential and shared only with the core pastoral prayer team.",
+    "When a prayer request is submitted, an automated real-time email notification is securely dispatched to the pastoral prayer team.",
+    "Visitors can browse existing public prayers, reflect, and click to indicate they are praying in agreement."
+  ],
+  "privacyRules": [
+    "NEVER collect personal names, email addresses, phone numbers, or private details directly inside the chatbot.",
+    "If a visitor asks for prayer, lovingly point them to the Prayer Wall at /prayer-wall where they can submit their petition with full privacy controls.",
+    "NEVER disclose internal emails, SMTP credentials, or database configurations under any circumstances."
+  ]
+}

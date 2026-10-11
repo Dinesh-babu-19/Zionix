@@ -19,6 +19,7 @@ import {
   getAppSetting, 
   setAppSetting 
 } from './db/index.js';
+import { processChatQuery, getInitialQuickQuestions } from './chatbotService.js';
 
 // Prioritize IPv4 in Node.js to eliminate Windows IPv6 SMTP connection hangs
 if (dns.setDefaultResultOrder) {
@@ -240,6 +241,87 @@ const requireAdminAuth = (req, res, next) => {
 // Health Check API
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running successfully!', timestamp: new Date() });
+});
+
+// Chatbot in-memory rate limiter (30 requests/minute per IP)
+const chatRateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 30;
+
+const chatRateLimiter = (req, res, next) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const entry = chatRateLimitMap.get(ip) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
+
+  if (now > entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + RATE_LIMIT_WINDOW_MS;
+  } else {
+    entry.count += 1;
+  }
+  chatRateLimitMap.set(ip, entry);
+
+  if (entry.count > MAX_REQUESTS_PER_WINDOW) {
+    return res.status(429).json({
+      error: 'Too many requests. Please wait a moment before sending another message.'
+    });
+  }
+  next();
+};
+
+// Chatbot Initial Quick Questions API
+app.get('/api/chat/quick-questions', (req, res) => {
+  try {
+    const questions = getInitialQuickQuestions();
+    res.json({ success: true, questions });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve quick questions' });
+  }
+});
+
+// Chatbot Query API
+app.post('/api/chat', chatRateLimiter, async (req, res) => {
+  try {
+    const { message, history } = req.body || {};
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'A valid text message is required.' });
+    }
+
+    const trimmedMessage = message.trim();
+    if (trimmedMessage.length === 0) {
+      return res.status(400).json({ error: 'Message cannot be empty.' });
+    }
+    if (trimmedMessage.length > 500) {
+      return res.status(400).json({ error: 'Message exceeds the 500 character limit.' });
+    }
+
+    const safeHistory = Array.isArray(history) ? history.slice(-6) : [];
+
+    const getCurrentDailyVerse = async () => {
+      const dbDaily = await getAppSetting('daily_verse');
+      return dbDaily || readDataFile('dailyVerse.json');
+    };
+
+    const result = await processChatQuery(trimmedMessage, safeHistory, getCurrentDailyVerse);
+    return res.json({
+      success: true,
+      reply: result.reply,
+      actions: result.actions || [],
+      relatedQuestions: result.relatedQuestions || []
+    });
+  } catch (error) {
+    console.error('Chat endpoint error:', error);
+    return res.json({
+      success: true,
+      reply: "Something went wrong while processing your question. Please try again, or explore Zionix's sections directly.",
+      actions: [{ label: "Explore Zionix", path: "/" }],
+      relatedQuestions: [
+        "Where can I read the Bible?",
+        "What is the Scripture of the Day?",
+        "How can I submit a prayer request?"
+      ]
+    });
+  }
 });
 
 // Admin Login API
