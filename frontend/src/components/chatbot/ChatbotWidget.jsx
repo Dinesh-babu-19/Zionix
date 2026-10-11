@@ -11,7 +11,7 @@ const DEFAULT_QUICK_QUESTIONS = [
   { category: "Prayer", question: "How can I submit a prayer request?" },
   { category: "Prayer", question: "Can I make my prayer private?" },
   { category: "Gospel", question: "Where can I learn about salvation?" },
-  { category: "Gospel", question: "What Christian foundations does Zionix cover?" }
+  { category: "Gospel", question: "What Christian foundations does Zionaviel cover?" }
 ];
 
 export default function ChatbotWidget() {
@@ -83,7 +83,7 @@ export default function ChatbotWidget() {
         const data = await res.json();
         const assistantMessage = {
           role: 'assistant',
-          content: data.reply || "I'm here to help you explore Zionix.",
+          content: data.reply || "I'm here to help you explore Zionaviel.",
           actions: data.actions || [],
           relatedQuestions: data.relatedQuestions || [],
           timestamp: new Date().toISOString()
@@ -97,7 +97,7 @@ export default function ChatbotWidget() {
           {
             role: 'assistant',
             content: fallbackText,
-            actions: [{ label: "Explore Zionix", path: "/" }],
+            actions: [{ label: "Explore Zionaviel", path: "/" }],
             relatedQuestions: ["Where can I read the Bible?", "What is the Scripture of the Day?"],
             timestamp: new Date().toISOString()
           }
@@ -109,7 +109,7 @@ export default function ChatbotWidget() {
         {
           role: 'assistant',
           content: "Unable to reach the server. Please check your internet connection and try again.",
-          actions: [{ label: "Explore Zionix", path: "/" }],
+          actions: [{ label: "Explore Zionaviel", path: "/" }],
           relatedQuestions: ["Where can I read the Bible?", "What is the Scripture of the Day?"],
           timestamp: new Date().toISOString()
         }

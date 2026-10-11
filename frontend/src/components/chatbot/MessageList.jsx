@@ -44,7 +44,7 @@ export default function MessageList({
           </div>
           <div>
             <h3 className="text-xs font-semibold text-slate-900 tracking-wide">
-              Welcome to Zionix
+              Welcome to Zionaviel
             </h3>
             <p className="text-xs text-slate-600 mt-1 leading-relaxed">
               How can I help you explore Scripture, devotionals, prayer, or the gospel? Select a topic below or type your question.

@@ -44,8 +44,8 @@ export default function ChatInput({ onSendMessage, isLoading, isOpen }) {
           disabled={isLoading}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isLoading ? "Zionix is responding..." : "Ask about Scripture, devotionals, prayer..."}
-          aria-label="Ask Zionix assistant a question"
+          placeholder={isLoading ? "Zionaviel is responding..." : "Ask about Scripture, devotionals, prayer..."}
+          aria-label="Ask Zionaviel assistant a question"
           className="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none disabled:opacity-60"
         />
 
@@ -60,7 +60,7 @@ export default function ChatInput({ onSendMessage, isLoading, isOpen }) {
       </div>
 
       <div className="flex items-center justify-between mt-1.5 px-1 text-[10px] text-slate-400">
-        <span>Grounded in Zionix scripture & devotionals</span>
+        <span>Grounded in Zionaviel scripture & devotionals</span>
         {text.length > 350 && (
           <span className={text.length >= 480 ? 'text-red-500 font-semibold' : ''}>
             {text.length}/500

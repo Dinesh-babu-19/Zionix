@@ -14,7 +14,7 @@ export default function ChatHeader({ onClose, onReset }) {
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Online" />
           </div>
           <p className="text-xs text-amber-200/80 font-normal leading-tight">
-            Explore Zionix, Scripture, devotionals & prayer
+            Explore Zionaviel, Scripture, devotionals & prayer
           </p>
         </div>
       </div>

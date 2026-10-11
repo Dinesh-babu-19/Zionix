@@ -5,7 +5,7 @@ export default function ChatbotButton({ isOpen, onClick, unreadCount }) {
   return (
     <button
       onClick={onClick}
-      aria-label={isOpen ? "Close Zionix assistant" : "Open Zionix assistant"}
+      aria-label={isOpen ? "Close Zionaviel assistant" : "Open Zionaviel assistant"}
       aria-expanded={isOpen}
       className={`fixed bottom-6 right-6 z-50 flex items-center justify-center p-3.5 rounded-full shadow-2xl transition-all duration-300 ease-out focus:outline-none focus:ring-4 focus:ring-secondary/40 select-none group ${
         isOpen
@@ -25,7 +25,7 @@ export default function ChatbotButton({ isOpen, onClick, unreadCount }) {
       </div>
 
       {!isOpen && (
-        <span className="sr-only">Open Zionix Assistant</span>
+        <span className="sr-only">Open Zionaviel Assistant</span>
       )}
     </button>
   );

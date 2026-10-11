@@ -14,8 +14,43 @@ export default function MessageBubble({ message, onNavigate }) {
     }
   };
 
+  // Sanitize text to remove raw routes and replace Zionix with Zionaviel
+  const sanitizeText = (raw) => {
+    if (!raw) return '';
+    let text = raw.replace(/zionix/gi, 'Zionaviel');
+
+    // Replace bracketed route error patterns like [/prayer], [/verse], [/bible], [/gospel]
+    text = text.replace(/\[\/?verse\]/gi, 'the Verse page');
+    text = text.replace(/\[\/?prayer(?:-wall)?\]/gi, 'the Prayer page');
+    text = text.replace(/\[\/?bible\]/gi, 'the Bible page');
+    text = text.replace(/\[\/?gospel\/explore\]/gi, 'the Theological Topics page');
+    text = text.replace(/\[\/?gospel\]/gi, 'the Gospel page');
+
+    // Replace parenthetical routes like (/verse), (/prayer-wall), (/bible), etc.
+    text = text.replace(/\(\/verse\)/gi, 'on the Verse page');
+    text = text.replace(/\(\/prayer(?:-wall)?\)/gi, 'on the Prayer page');
+    text = text.replace(/\(\/bible\)/gi, 'on the Bible page');
+    text = text.replace(/\(\/gospel\/explore\)/gi, 'on the Theological Topics page');
+    text = text.replace(/\(\/gospel\)/gi, 'on the Gospel page');
+
+    // Replace raw slash paths
+    text = text.replace(/\/verse\b/gi, 'the Verse page');
+    text = text.replace(/\/prayer-wall\b/gi, 'the Prayer page');
+    text = text.replace(/\/prayer\b/gi, 'the Prayer page');
+    text = text.replace(/\/bible\b/gi, 'the Bible page');
+    text = text.replace(/\/gospel\/explore\b/gi, 'the Theological Topics page');
+    text = text.replace(/\/gospel\b/gi, 'the Gospel page');
+
+    // Clean up duplicate prepositions/articles like "on the the Verse page"
+    text = text.replace(/\b(on|in|at|to|visit|check)\s+the\s+the\b/gi, '$1 the');
+    text = text.replace(/\bthe\s+the\b/gi, 'the');
+
+    return text;
+  };
+
   // Basic markdown parser for bolding, line breaks, and internal link formatting
-  const renderFormattedText = (text) => {
+  const renderFormattedText = (rawText) => {
+    const text = sanitizeText(rawText);
     if (!text) return null;
 
     // Split paragraphs
@@ -42,6 +77,18 @@ export default function MessageBubble({ message, onNavigate }) {
     });
   };
 
+  // Build complete navigation actions, auto-suggesting verse or prayer page if relevant
+  const actionsToRender = [...(message.actions || [])];
+  if (!isUser && message.content) {
+    const lowerContent = message.content.toLowerCase();
+    if ((lowerContent.includes('verse') || lowerContent.includes('daily bread')) && !actionsToRender.some(a => a.path === '/verse')) {
+      actionsToRender.push({ label: "Go to Verse Page", path: "/verse" });
+    }
+    if ((lowerContent.includes('prayer') || lowerContent.includes('intercession')) && !actionsToRender.some(a => a.path === '/prayer-wall')) {
+      actionsToRender.push({ label: "Go to Prayer Page", path: "/prayer-wall" });
+    }
+  }
+
   return (
     <div className={`flex items-start space-x-2 my-2.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && (
@@ -59,20 +106,20 @@ export default function MessageBubble({ message, onNavigate }) {
           }`}
         >
           {isUser ? (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            <p className="whitespace-pre-wrap">{sanitizeText(message.content)}</p>
           ) : (
             <div className="space-y-1">{renderFormattedText(message.content)}</div>
           )}
         </div>
 
-        {/* Action navigation buttons */}
-        {!isUser && message.actions && message.actions.length > 0 && (
+        {/* Action navigation buttons & suggestions */}
+        {!isUser && actionsToRender.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
-            {message.actions.map((act, idx) => (
+            {actionsToRender.map((act, idx) => (
               <button
                 key={idx}
                 onClick={() => handleActionClick(act.path)}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-50 to-amber-100/70 hover:from-amber-100 hover:to-amber-200 text-amber-900 border border-amber-300/60 rounded-full text-xs font-medium shadow-2xs hover:shadow-xs transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-50 to-amber-100/70 hover:from-amber-100 hover:to-amber-200 text-amber-900 border border-amber-300/60 rounded-full text-xs font-medium shadow-2xs hover:shadow-xs transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
               >
                 <Compass className="w-3 h-3 text-secondary" />
                 <span>{act.label}</span>

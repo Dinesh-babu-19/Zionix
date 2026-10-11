@@ -3,7 +3,7 @@
   "title": "Comprehensive Bible Explorer",
   "route": "/bible",
   "facts": [
-    "The Bible Explorer at /bible contains the complete 66-book canon of the Holy Bible.",
+    "The Bible Explorer contains the complete 66-book canon of the Holy Bible.",
     "It encompasses both the Old Testament (39 books) and the New Testament (27 books).",
     "Users can read complete chapters and individual verses with distraction-free layout.",
     "High-speed full-text search indexing allows finding any word, topic, or scripture passage across the entire Bible.",
@@ -12,6 +12,6 @@
     "The Bible Explorer is available full-screen for immersive reading."
   ],
   "rules": [
-    "Do not claim a specific translation is available unless explicitly indicated in Zionix's current Bible reader data."
+    "Do not claim a specific translation is available unless explicitly indicated in Zionaviel's current Bible reader data."
   ]
 }

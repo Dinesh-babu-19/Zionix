@@ -5,19 +5,19 @@
       "icon": "sparkles",
       "questions": [
         {
-          "question": "What is Zionix?",
-          "answer": "Zionix is an elegant, modern Christian spiritual platform designed for daily Scripture study, devotional reflection, communal prayer, and gospel exploration. It bridges timeless biblical truths with a peaceful web experience.",
+          "question": "What is Zionaviel?",
+          "answer": "Zionaviel is an elegant, modern Christian spiritual platform designed for daily Scripture study, devotional reflection, communal prayer, and gospel exploration. It bridges timeless biblical truths with a peaceful web experience.",
           "route": "/",
-          "actionLabel": "Explore Zionix",
+          "actionLabel": "Explore Zionaviel",
           "followUps": [
-            "What features are available on Zionix?",
+            "What features are available on Zionaviel?",
             "Where can I read the Bible?",
             "How does the Prayer Wall work?"
           ]
         },
         {
-          "question": "What features are available on Zionix?",
-          "answer": "Zionix provides five primary features: 1) Daily Bread & Morning Reflections, 2) Comprehensive 66-Book Bible Explorer with search, 3) Interactive Community Prayer Wall with privacy controls, 4) Gospel Clarity & Foundations, and 5) Searchable Theological Topics.",
+          "question": "What features are available on Zionaviel?",
+          "answer": "Zionaviel provides five primary features: 1) Daily Bread & Morning Reflections, 2) Comprehensive 66-Book Bible Explorer with search, 3) Interactive Community Prayer Wall with privacy controls, 4) Gospel Clarity & Foundations, and 5) Searchable Theological Topics.",
           "route": "/",
           "actionLabel": "View Features",
           "followUps": [
@@ -27,8 +27,8 @@
           ]
         },
         {
-          "question": "Who is Zionix for?",
-          "answer": "Zionix is designed for both believers seeking daily spiritual nourishment and discipleship, as well as seekers exploring the foundational truths of Christianity.",
+          "question": "Who is Zionaviel for?",
+          "answer": "Zionaviel is designed for both believers seeking daily spiritual nourishment and discipleship, as well as seekers exploring the foundational truths of Christianity.",
           "route": "/",
           "actionLabel": "Start Exploring",
           "followUps": [
@@ -44,18 +44,18 @@
       "questions": [
         {
           "question": "Where can I read the Bible?",
-          "answer": "You can read the entire Bible using Zionix's full-screen Bible Explorer. It includes all 66 books across the Old and New Testaments with chapter-by-chapter navigation.",
+          "answer": "You can read the entire Bible using Zionaviel's full-screen Bible Explorer. It includes all 66 books across the Old and New Testaments with chapter-by-chapter navigation.",
           "route": "/bible",
           "actionLabel": "Open Bible Explorer",
           "followUps": [
-            "Can I search the Bible on Zionix?",
+            "Can I search the Bible on Zionaviel?",
             "How many books are in the Bible Explorer?",
             "Can I change the text size while reading?"
           ]
         },
         {
           "question": "Can I search the Bible?",
-          "answer": "Yes! Zionix features a lightning-fast full-text search engine in the Bible Explorer that lets you search any word, phrase, or scripture reference across all 66 books instantly.",
+          "answer": "Yes! Zionaviel features a lightning-fast full-text search engine in the Bible Explorer that lets you search any word, phrase, or scripture reference across all 66 books instantly.",
           "route": "/bible",
           "actionLabel": "Search Scripture",
           "followUps": [
@@ -181,9 +181,9 @@
       "questions": [
         {
           "question": "How can I submit a prayer request?",
-          "answer": "You can submit a prayer request on the Prayer Wall at /prayer-wall. Choose a category (like Healing, Family, or Guidance), type your petition, and choose whether to make it public or private.",
+          "answer": "You can submit a prayer request on the Prayer Wall page. Choose a category (like Healing, Family, or Guidance), type your petition, and choose whether to make it public or private.",
           "route": "/prayer-wall",
-          "actionLabel": "Go to Prayer Wall",
+          "actionLabel": "Go to Prayer Page",
           "followUps": [
             "Can I make my prayer private?",
             "Can other people see my prayer?",
@@ -192,7 +192,7 @@
         },
         {
           "question": "Can I make my prayer private?",
-          "answer": "Yes. Zionix provides confidentiality toggles. You can mark your request 'Private', which means it will not appear on the public wall and will only be shared with the core pastoral team.",
+          "answer": "Yes. Zionaviel provides confidentiality toggles. You can mark your request 'Private', which means it will not appear on the public wall and will only be shared with the core pastoral team.",
           "route": "/prayer-wall",
           "actionLabel": "Submit Private Prayer",
           "followUps": [
@@ -213,7 +213,7 @@
         },
         {
           "question": "What happens after I submit a prayer?",
-          "answer": "When you submit a request, an automated email notification is dispatched to the prayer team so they can intercede for you. If marked public, other believers on Zionix can also pray for your request.",
+          "answer": "When you submit a request, an automated email notification is dispatched to the prayer team so they can intercede for you. If marked public, other believers on Zionaviel can also pray for your request.",
           "route": "/prayer-wall",
           "actionLabel": "Open Prayer Wall",
           "followUps": [
@@ -239,18 +239,18 @@
       "questions": [
         {
           "question": "Where can I learn about salvation?",
-          "answer": "You can explore the biblical teaching on salvation in Zionix's Gospel Clarity section and the Gospel Topics Explorer, which explain God's plan of redemption through Jesus Christ.",
+          "answer": "You can explore the biblical teaching on salvation in Zionaviel's Gospel Clarity section and the Gospel Topics Explorer, which explain God's plan of redemption through Jesus Christ.",
           "route": "/gospel/explore",
           "actionLabel": "Learn About Salvation",
           "followUps": [
-            "What does Zionix teach about grace?",
+            "What does Zionaviel teach about grace?",
             "Where can I learn about faith?",
-            "Who is Jesus according to Zionix?"
+            "Who is Jesus according to Zionaviel?"
           ]
         },
         {
-          "question": "What does Zionix teach about grace?",
-          "answer": "Zionix teaches that grace is God's unmerited divine favor—a free gift that cannot be earned by human works, but is received with a humble heart through Jesus Christ.",
+          "question": "What does Zionaviel teach about grace?",
+          "answer": "Zionaviel teaches that grace is God's unmerited divine favor—a free gift that cannot be earned by human works, but is received with a humble heart through Jesus Christ.",
           "route": "/gospel/explore",
           "actionLabel": "Explore Grace",
           "followUps": [
@@ -260,7 +260,7 @@
           ]
         },
         {
-          "question": "What is the Gospel according to Zionix?",
+          "question": "What is the Gospel according to Zionaviel?",
           "answer": "The Gospel is the good news of salvation and reconciliation with God through the life, death on the cross, and victorious resurrection of Jesus Christ.",
           "route": "/gospel",
           "actionLabel": "Read Gospel Clarity",
@@ -271,23 +271,23 @@
           ]
         },
         {
-          "question": "What Christian foundations does Zionix cover?",
-          "answer": "Zionix covers 9 foundational topics: Who is Jesus?, What is the Gospel?, Salvation, Grace, Repentance, Faith, Resurrection, Eternal Life, and How to Pray.",
+          "question": "What Christian foundations does Zionaviel cover?",
+          "answer": "Zionaviel covers 9 foundational topics: Who is Jesus?, What is the Gospel?, Salvation, Grace, Repentance, Faith, Resurrection, Eternal Life, and How to Pray.",
           "route": "/gospel/explore",
           "actionLabel": "Explore All 9 Topics",
           "followUps": [
             "Where can I learn about salvation?",
-            "What does Zionix teach about grace?",
+            "What does Zionaviel teach about grace?",
             "Where can I read the Bible?"
           ]
         },
         {
-          "question": "Where can I find theological topics on Zionix?",
-          "answer": "You can browse all theological topics in the Gospel Explore section at /gospel/explore, where each topic is anchored in clear Scripture references.",
+          "question": "Where can I find theological topics on Zionaviel?",
+          "answer": "You can browse all theological topics in the Gospel Explore section, where each topic is anchored in clear Scripture references.",
           "route": "/gospel/explore",
           "actionLabel": "Browse Topics",
           "followUps": [
-            "What Christian foundations does Zionix cover?",
+            "What Christian foundations does Zionaviel cover?",
             "Where can I learn about salvation?"
           ]
         }
@@ -332,7 +332,7 @@
     },
     {
       "category": "Gospel",
-      "question": "What Christian foundations does Zionix cover?",
+      "question": "What Christian foundations does Zionaviel cover?",
       "icon": "sparkles"
     }
   ]

@@ -313,8 +313,8 @@ app.post('/api/chat', chatRateLimiter, async (req, res) => {
     console.error('Chat endpoint error:', error);
     return res.json({
       success: true,
-      reply: "Something went wrong while processing your question. Please try again, or explore Zionix's sections directly.",
-      actions: [{ label: "Explore Zionix", path: "/" }],
+      reply: "Something went wrong while processing your question. Please try again, or explore Zionaviel's sections directly.",
+      actions: [{ label: "Explore Zionaviel", path: "/" }],
       relatedQuestions: [
         "Where can I read the Bible?",
         "What is the Scripture of the Day?",

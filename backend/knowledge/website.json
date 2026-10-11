@@ -1,8 +1,8 @@
 {
-  "name": "Zionix",
-  "aliases": ["Zionaviel", "Zionvaiel"],
+  "name": "Zionaviel",
+  "aliases": ["Zionix", "Zionvaiel"],
   "tagline": "An elegant, modern sanctuary for daily scripture study, communal prayer, and gospel exploration.",
-  "description": "Zionix is a full-stack Christian spiritual portal that bridges timeless biblical truths with a modern, serene web experience. Its mission is to nourish believers and seekers with daily spiritual nourishment, scripture study, communal intercession, and gospel clarity.",
+  "description": "Zionaviel is a full-stack Christian spiritual portal that bridges timeless biblical truths with a modern, serene web experience. Its mission is to nourish believers and seekers with daily spiritual nourishment, scripture study, communal intercession, and gospel clarity.",
   "corePillars": [
     "Daily Scripture & Morning Devotionals",
     "Comprehensive 66-Book Bible Explorer & Search",

@@ -32,7 +32,7 @@ export default function ChatWindow({
     <div
       ref={windowRef}
       role="dialog"
-      aria-label="Zionix Website Assistant"
+      aria-label="Zionaviel Website Assistant"
       aria-modal="false"
       className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[380px] h-[490px] sm:h-[530px] max-h-[calc(100vh-48px)] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden animate-fadeIn transition-all duration-200"
       style={{
