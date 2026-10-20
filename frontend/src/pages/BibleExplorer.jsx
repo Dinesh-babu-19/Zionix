@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
@@ -18,99 +18,43 @@ import {
   VolumeX,
   Languages,
   ArrowLeft,
-  Check
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import SEO from '../components/SEO';
+import {
+  BIBLE_BOOKS_MAP,
+  BIBLE_BOOKS_ORDER,
+  parseBibleReference,
+  getBookSuggestions,
+  resolveBookKey
+} from '../lib/bibleSearchEngine';
 
-// Full Protestant Bible Metadata
-const BIBLE_BOOKS_MAP = {
-  // Old Testament
-  genesis: { name: 'Genesis', chapters: 50, testament: 'Old Testament' },
-  exodus: { name: 'Exodus', chapters: 40, testament: 'Old Testament' },
-  leviticus: { name: 'Leviticus', chapters: 27, testament: 'Old Testament' },
-  numbers: { name: 'Numbers', chapters: 36, testament: 'Old Testament' },
-  deuteronomy: { name: 'Deuteronomy', chapters: 34, testament: 'Old Testament' },
-  joshua: { name: 'Joshua', chapters: 24, testament: 'Old Testament' },
-  judges: { name: 'Judges', chapters: 21, testament: 'Old Testament' },
-  ruth: { name: 'Ruth', chapters: 4, testament: 'Old Testament' },
-  '1 samuel': { name: '1 Samuel', chapters: 31, testament: 'Old Testament' },
-  '2 samuel': { name: '2 Samuel', chapters: 24, testament: 'Old Testament' },
-  '1 kings': { name: '1 Kings', chapters: 22, testament: 'Old Testament' },
-  '2 kings': { name: '2 Kings', chapters: 25, testament: 'Old Testament' },
-  '1 chronicles': { name: '1 Chronicles', chapters: 29, testament: 'Old Testament' },
-  '2 chronicles': { name: '2 Chronicles', chapters: 36, testament: 'Old Testament' },
-  ezra: { name: 'Ezra', chapters: 10, testament: 'Old Testament' },
-  nehemiah: { name: 'Nehemiah', chapters: 13, testament: 'Old Testament' },
-  esther: { name: 'Esther', chapters: 10, testament: 'Old Testament' },
-  job: { name: 'Job', chapters: 42, testament: 'Old Testament' },
-  psalms: { name: 'Psalms', chapters: 150, testament: 'Old Testament' },
-  proverbs: { name: 'Proverbs', chapters: 31, testament: 'Old Testament' },
-  ecclesiastes: { name: 'Ecclesiastes', chapters: 12, testament: 'Old Testament' },
-  'song of solomon': { name: 'Song of Solomon', chapters: 8, testament: 'Old Testament' },
-  isaiah: { name: 'Isaiah', chapters: 66, testament: 'Old Testament' },
-  jeremiah: { name: 'Jeremiah', chapters: 52, testament: 'Old Testament' },
-  lamentations: { name: 'Lamentations', chapters: 5, testament: 'Old Testament' },
-  ezekiel: { name: 'Ezekiel', chapters: 48, testament: 'Old Testament' },
-  daniel: { name: 'Daniel', chapters: 12, testament: 'Old Testament' },
-  hosea: { name: 'Hosea', chapters: 14, testament: 'Old Testament' },
-  joel: { name: 'Joel', chapters: 3, testament: 'Old Testament' },
-  amos: { name: 'Amos', chapters: 9, testament: 'Old Testament' },
-  obadiah: { name: 'Obadiah', chapters: 1, testament: 'Old Testament' },
-  jonah: { name: 'Jonah', chapters: 4, testament: 'Old Testament' },
-  micah: { name: 'Micah', chapters: 7, testament: 'Old Testament' },
-  nahum: { name: 'Nahum', chapters: 3, testament: 'Old Testament' },
-  habakkuk: { name: 'Habakkuk', chapters: 3, testament: 'Old Testament' },
-  zephaniah: { name: 'Zephaniah', chapters: 3, testament: 'Old Testament' },
-  haggai: { name: 'Haggai', chapters: 2, testament: 'Old Testament' },
-  zechariah: { name: 'Zechariah', chapters: 14, testament: 'Old Testament' },
-  malachi: { name: 'Malachi', chapters: 4, testament: 'Old Testament' },
-  
-  // New Testament
-  matthew: { name: 'Matthew', chapters: 28, testament: 'New Testament' },
-  mark: { name: 'Mark', chapters: 16, testament: 'New Testament' },
-  luke: { name: 'Luke', chapters: 24, testament: 'New Testament' },
-  john: { name: 'John', chapters: 21, testament: 'New Testament' },
-  acts: { name: 'Acts', chapters: 28, testament: 'New Testament' },
-  romans: { name: 'Romans', chapters: 16, testament: 'New Testament' },
-  '1 corinthians': { name: '1 Corinthians', chapters: 16, testament: 'New Testament' },
-  '2 corinthians': { name: '2 Corinthians', chapters: 13, testament: 'New Testament' },
-  galatians: { name: 'Galatians', chapters: 6, testament: 'New Testament' },
-  ephesians: { name: 'Ephesians', chapters: 6, testament: 'New Testament' },
-  philippians: { name: 'Philippians', chapters: 4, testament: 'New Testament' },
-  colossians: { name: 'Colossians', chapters: 4, testament: 'New Testament' },
-  '1 thessalonians': { name: '1 Thessalonians', chapters: 5, testament: 'New Testament' },
-  '2 thessalonians': { name: '2 Thessalonians', chapters: 3, testament: 'New Testament' },
-  '1 timothy': { name: '1 Timothy', chapters: 6, testament: 'New Testament' },
-  '2 timothy': { name: '2 Timothy', chapters: 4, testament: 'New Testament' },
-  titus: { name: 'Titus', chapters: 3, testament: 'New Testament' },
-  philemon: { name: 'Philemon', chapters: 1, testament: 'New Testament' },
-  hebrews: { name: 'Hebrews', chapters: 13, testament: 'New Testament' },
-  james: { name: 'James', chapters: 5, testament: 'New Testament' },
-  '1 peter': { name: '1 Peter', chapters: 5, testament: 'New Testament' },
-  '2 peter': { name: '2 Peter', chapters: 3, testament: 'New Testament' },
-  '1 john': { name: '1 John', chapters: 5, testament: 'New Testament' },
-  '2 john': { name: '2 John', chapters: 1, testament: 'New Testament' },
-  '3 john': { name: '3 John', chapters: 1, testament: 'New Testament' },
-  jude: { name: 'Jude', chapters: 1, testament: 'New Testament' },
-  revelation: { name: 'Revelation', chapters: 22, testament: 'New Testament' }
-};
-
-const BIBLE_BOOKS_ORDER = [
-  'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy', 'joshua', 'judges', 'ruth',
-  '1 samuel', '2 samuel', '1 kings', '2 kings', '1 chronicles', '2 chronicles', 'ezra',
-  'nehemiah', 'esther', 'job', 'psalms', 'proverbs', 'ecclesiastes', 'song of solomon',
-  'isaiah', 'jeremiah', 'lamentations', 'ezekiel', 'daniel', 'hosea', 'joel', 'amos',
-  'obadiah', 'jonah', 'micah', 'nahum', 'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi',
-  'matthew', 'mark', 'luke', 'john', 'acts', 'romans', '1 corinthians', '2 corinthians',
-  'galatians', 'ephesians', 'philippians', 'colossians', '1 thessalonians', '2 thessalonians',
-  '1 timothy', '2 timothy', 'titus', 'philemon', 'hebrews', 'james', '1 peter', '2 peter',
-  '1 john', '2 john', '3 john', 'jude', 'revelation'
-];
+// Helper to parse verse parameter like "2" or "1-5" into array of verse numbers
+function parseVerseParam(verseStr) {
+  if (!verseStr || typeof verseStr !== 'string') return [];
+  const parts = verseStr.split(/[-–—]/);
+  const start = parseInt(parts[0], 10);
+  if (isNaN(start) || start <= 0) return [];
+  if (parts.length > 1) {
+    const end = parseInt(parts[1], 10);
+    if (!isNaN(end) && end >= start) {
+      const verses = [];
+      const safeEnd = Math.min(end, start + 100);
+      for (let i = start; i <= safeEnd; i++) {
+        verses.push(i);
+      }
+      return verses;
+    }
+  }
+  return [start];
+}
 
 export default function BibleExplorer() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlBook = searchParams.get('book')?.toLowerCase();
   const urlChapter = parseInt(searchParams.get('chapter'), 10);
+  const urlVerse = searchParams.get('verse');
 
   // Restore previous chapter and book user read, or fallback to John 3
   const initialBook = (urlBook && BIBLE_BOOKS_MAP[urlBook]) 
@@ -125,6 +69,7 @@ export default function BibleExplorer() {
   const [activeTab, setActiveTab] = useState('read'); // 'read', 'favorites', 'history', 'settings'
   const [selectedBook, setSelectedBook] = useState(initialBook);
   const [selectedChapter, setSelectedChapter] = useState(initialChapter);
+  const [highlightedVerses, setHighlightedVerses] = useState(() => parseVerseParam(urlVerse));
   const [otExpanded, setOtExpanded] = useState(() => {
     return BIBLE_BOOKS_MAP[initialBook]?.testament === 'Old Testament';
   });
@@ -174,12 +119,121 @@ export default function BibleExplorer() {
   const searchInputRef = useRef(null);
   const scrollContainerRef = useRef(null);
 
-  // Scroll to top of the panel when book, chapter or tab changes
+  // Synchronize state from URL search parameters on route change and browser Back/Forward (popstate)
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo(0, 0);
+    const pBook = searchParams.get('book')?.toLowerCase();
+    const pChapter = parseInt(searchParams.get('chapter'), 10);
+    const pVerse = searchParams.get('verse');
+
+    if (pBook && BIBLE_BOOKS_MAP[pBook]) {
+      const maxCh = BIBLE_BOOKS_MAP[pBook].chapters;
+      const validCh = (!isNaN(pChapter) && pChapter >= 1 && pChapter <= maxCh) ? pChapter : 1;
+      
+      setSelectedBook(pBook);
+      setSelectedChapter(validCh);
+      setOtExpanded(BIBLE_BOOKS_MAP[pBook]?.testament === 'Old Testament');
+      setNtExpanded(BIBLE_BOOKS_MAP[pBook]?.testament !== 'Old Testament');
+
+      const bookName = BIBLE_BOOKS_MAP[pBook].name;
+      if (pVerse) {
+        const parsedRange = parseVerseParam(pVerse);
+        setHighlightedVerses(parsedRange);
+        setSearchQuery(`${bookName} ${validCh}:${pVerse}`);
+      } else {
+        setHighlightedVerses([]);
+        setSearchQuery(`${bookName} ${validCh}`);
+      }
+    } else if (!pBook) {
+      // If accessed without searchParams, check localStorage or default to John 3 with replace: true
+      const savedBook = localStorage.getItem('bible_last_book') || 'john';
+      const savedCh = parseInt(localStorage.getItem('bible_last_chapter'), 10) || 3;
+      const validBook = BIBLE_BOOKS_MAP[savedBook] ? savedBook : 'john';
+      const validCh = Math.min(Math.max(1, savedCh), BIBLE_BOOKS_MAP[validBook].chapters);
+
+      setSearchParams({ book: validBook, chapter: validCh.toString() }, { replace: true });
     }
-  }, [selectedBook, selectedChapter, activeTab]);
+  }, [searchParams, setSearchParams]);
+
+  // Navigate to passage using browser history API
+  const navigateToPassage = useCallback(({ book, chapter = 1, verse = null, verseEnd = null, replace = false }) => {
+    const resolvedKey = resolveBookKey(book) || (typeof book === 'string' ? book.toLowerCase() : null);
+    if (!resolvedKey || !BIBLE_BOOKS_MAP[resolvedKey]) {
+      showToast(`Book '${book}' not recognized.`);
+      return false;
+    }
+
+    const bookMeta = BIBLE_BOOKS_MAP[resolvedKey];
+    const maxCh = bookMeta.chapters;
+    const numChapter = parseInt(chapter, 10);
+    if (isNaN(numChapter) || numChapter < 1 || numChapter > maxCh) {
+      showToast(`${bookMeta.name} only has ${maxCh} chapters.`);
+      return false;
+    }
+
+    const params = {
+      book: resolvedKey,
+      chapter: numChapter.toString()
+    };
+
+    let verseDisplay = '';
+    if (verse) {
+      const vStart = parseInt(verse, 10);
+      const vEnd = verseEnd ? parseInt(verseEnd, 10) : null;
+      if (!isNaN(vStart) && vStart > 0) {
+        if (vEnd && vEnd !== vStart) {
+          params.verse = `${vStart}-${vEnd}`;
+          verseDisplay = `:${vStart}–${vEnd}`;
+        } else {
+          params.verse = `${vStart}`;
+          verseDisplay = `:${vStart}`;
+        }
+      }
+    }
+
+    // Push new history entry so browser Back and Forward work seamlessly
+    setSearchParams(params, { replace });
+    setActiveTab('read');
+    setMobileBooksDrawerOpen(false);
+    setViewingChaptersForBook(null);
+    setMobileSearchOpen(false);
+    setSearchFocused(false);
+
+    const fullDisplay = `${bookMeta.name} ${numChapter}${verseDisplay}`;
+    setSearchQuery(fullDisplay);
+    showToast(`Loaded ${fullDisplay}`);
+    return true;
+  }, [setSearchParams]);
+
+  // Scroll to highlighted verse or top of container
+  useEffect(() => {
+    if (!loading && bibleData) {
+      if (highlightedVerses.length > 0) {
+        const firstVerse = highlightedVerses[0];
+        const timer = setTimeout(() => {
+          const el = document.getElementById(`verse-${firstVerse}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 220);
+        return () => clearTimeout(timer);
+      } else {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }
+  }, [loading, bibleData, highlightedVerses]);
+
+  // Validate verse against actual loaded Bible chapter
+  useEffect(() => {
+    if (bibleData && !loading && highlightedVerses.length > 0 && Array.isArray(bibleData.verses)) {
+      const totalVerses = bibleData.verses.length;
+      const invalid = highlightedVerses.filter(v => v > totalVerses);
+      if (invalid.length > 0) {
+        showToast(`Note: Verse ${invalid.join(', ')} does not exist in ${bibleData.book} ${bibleData.chapter} (has ${totalVerses} verses).`);
+      }
+    }
+  }, [bibleData, loading, highlightedVerses]);
 
   // Persist translation
   useEffect(() => {
@@ -201,34 +255,26 @@ export default function BibleExplorer() {
     if (!refItem) return;
     
     if (refItem.book && refItem.chapter) {
-      setSelectedBook(refItem.book);
-      setSelectedChapter(parseInt(refItem.chapter, 10));
-      setActiveTab('read');
-      showToast(`Navigated to ${refItem.reference}`);
+      navigateToPassage({
+        book: refItem.book,
+        chapter: parseInt(refItem.chapter, 10),
+        verse: refItem.verse || null
+      });
       return;
     }
     
     const refStr = typeof refItem === 'string' ? refItem : refItem.reference;
     if (!refStr) return;
     
-    const match = refStr.match(/^([1-3]?\s?[A-Za-z.]+)\s+(\d+)/);
-    if (match) {
-      const rawBook = match[1].replace(/\./g, '').trim().toLowerCase();
-      const chapterNum = parseInt(match[2], 10);
-      
-      const matchedKey = BIBLE_BOOKS_ORDER.find(k => {
-        const bName = BIBLE_BOOKS_MAP[k]?.name.toLowerCase().replace(/\./g, '');
-        return bName === rawBook || bName.startsWith(rawBook) || rawBook.startsWith(bName) || k === rawBook;
+    const parsed = parseBibleReference(refStr);
+    if (parsed && parsed.isValid) {
+      navigateToPassage({
+        book: parsed.bookKey,
+        chapter: parsed.chapter,
+        verse: parsed.verseStart,
+        verseEnd: parsed.verseEnd
       });
-      
-      if (matchedKey && BIBLE_BOOKS_MAP[matchedKey]) {
-        const maxCh = BIBLE_BOOKS_MAP[matchedKey].chapters;
-        const validCh = Math.min(Math.max(1, chapterNum), maxCh);
-        setSelectedBook(matchedKey);
-        setSelectedChapter(validCh);
-        setActiveTab('read');
-        showToast(`Navigated to ${BIBLE_BOOKS_MAP[matchedKey].name} Chapter ${validCh}`);
-      }
+      return;
     }
   };
 
@@ -373,17 +419,35 @@ export default function BibleExplorer() {
     window.print();
   };
 
-  // Search Functionality calling backend API
+  // Live passage reference detection (zero-latency client-side resolution)
+  const liveReference = useMemo(() => {
+    return parseBibleReference(searchQuery);
+  }, [searchQuery]);
+
+  // Book auto-suggestions when typing partial names
+  const bookSuggestions = useMemo(() => {
+    if (liveReference || !searchQuery || searchQuery.trim().length < 2) return [];
+    return getBookSuggestions(searchQuery);
+  }, [searchQuery, liveReference]);
+
+  // Search Functionality
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
     
+    // Check if query is already a valid reference
+    const parsed = parseBibleReference(query);
+    if (parsed && parsed.isValid) {
+      setSearchResults([]);
+      return;
+    }
+
     if (query.trim().length < 3) {
       setSearchResults([]);
       return;
     }
 
-    // Server-side global search across entire Bible
+    // Server-side global full-text search across entire Bible
     fetch(`/api/bible/search?q=${encodeURIComponent(query)}`)
       .then((res) => {
         if (!res.ok) throw new Error('Search failed');
@@ -395,6 +459,51 @@ export default function BibleExplorer() {
       .catch((err) => {
         console.error('Error searching Bible:', err);
       });
+  };
+
+  // Submit search query (e.g. Enter key or submit button)
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    if (liveReference) {
+      if (liveReference.isValid) {
+        navigateToPassage({
+          book: liveReference.bookKey,
+          chapter: liveReference.chapter,
+          verse: liveReference.verseStart,
+          verseEnd: liveReference.verseEnd
+        });
+        setSearchResults([]);
+        setSearchFocused(false);
+        setMobileSearchOpen(false);
+        return;
+      } else {
+        showToast(liveReference.error);
+        return;
+      }
+    }
+
+    // If there are keyword search results, navigate to first result
+    if (searchResults.length > 0) {
+      const match = searchResults[0];
+      navigateToPassage({
+        book: match.book,
+        chapter: match.chapter,
+        verse: match.number
+      });
+      setSearchResults([]);
+      setSearchFocused(false);
+      setMobileSearchOpen(false);
+    } else {
+      showToast(`No scripture reference or matches found for "${searchQuery}"`);
+    }
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit(e);
+    }
   };
 
   const executeQuickSearch = () => {
@@ -409,32 +518,72 @@ export default function BibleExplorer() {
     }
   };
 
-  // Boundary-aware Navigation
-  const handlePrevChapter = () => {
-    const currentIdx = BIBLE_BOOKS_ORDER.indexOf(selectedBook);
+  // Unified Intelligent Chapter Targets Calculation
+  const currentBookMeta = BIBLE_BOOKS_MAP[selectedBook] || { name: selectedBook, chapters: 1, testament: 'Old Testament' };
+  const currentBookChapters = currentBookMeta.chapters;
+  const currentIdx = BIBLE_BOOKS_ORDER.indexOf(selectedBook);
+
+  // Compute Previous Chapter Target across books
+  const prevTarget = useMemo(() => {
     if (selectedChapter > 1) {
-      setSelectedChapter(selectedChapter - 1);
+      return {
+        book: selectedBook,
+        chapter: selectedChapter - 1,
+        label: `${currentBookMeta.name} Chapter ${selectedChapter - 1}`,
+        shortLabel: `${currentBookMeta.name} ${selectedChapter - 1}`
+      };
     } else if (currentIdx > 0) {
-      const prevBook = BIBLE_BOOKS_ORDER[currentIdx - 1];
-      const prevBookChapters = BIBLE_BOOKS_MAP[prevBook].chapters;
-      setSelectedBook(prevBook);
-      setSelectedChapter(prevBookChapters);
-      showToast(`Switched to ${BIBLE_BOOKS_MAP[prevBook].name}`);
+      const prevBookKey = BIBLE_BOOKS_ORDER[currentIdx - 1];
+      const prevMeta = BIBLE_BOOKS_MAP[prevBookKey];
+      return {
+        book: prevBookKey,
+        chapter: prevMeta.chapters,
+        label: `${prevMeta.name} Chapter ${prevMeta.chapters}`,
+        shortLabel: `${prevMeta.name} ${prevMeta.chapters}`
+      };
+    }
+    return null; // At beginning of Genesis
+  }, [selectedBook, selectedChapter, currentBookMeta, currentIdx]);
+
+  // Compute Next Chapter Target across books & testament boundaries
+  const nextTarget = useMemo(() => {
+    if (selectedChapter < currentBookChapters) {
+      return {
+        book: selectedBook,
+        chapter: selectedChapter + 1,
+        label: `${currentBookMeta.name} Chapter ${selectedChapter + 1}`,
+        shortLabel: `${currentBookMeta.name} ${selectedChapter + 1}`,
+        actionLabel: `Continue to ${currentBookMeta.name} ${selectedChapter + 1}`
+      };
+    } else if (currentIdx < BIBLE_BOOKS_ORDER.length - 1) {
+      const nextBookKey = BIBLE_BOOKS_ORDER[currentIdx + 1];
+      const nextMeta = BIBLE_BOOKS_MAP[nextBookKey];
+      const isCrossingTestament = currentBookMeta.testament === 'Old Testament' && nextMeta.testament === 'New Testament';
+      return {
+        book: nextBookKey,
+        chapter: 1,
+        label: `${nextMeta.name} Chapter 1`,
+        shortLabel: `${nextMeta.name} 1`,
+        actionLabel: isCrossingTestament
+          ? `Next: ${nextMeta.name} 1 (New Testament)`
+          : `Next Book: ${nextMeta.name} 1`
+      };
+    }
+    return null; // At end of Revelation
+  }, [selectedBook, selectedChapter, currentBookMeta, currentBookChapters, currentIdx]);
+
+  // Boundary-aware Navigation handlers that push to browser history
+  const handlePrevChapter = () => {
+    if (prevTarget) {
+      navigateToPassage({ book: prevTarget.book, chapter: prevTarget.chapter });
     } else {
       showToast('You are at the very beginning of the Holy Bible');
     }
   };
 
   const handleNextChapter = () => {
-    const currentIdx = BIBLE_BOOKS_ORDER.indexOf(selectedBook);
-    const currentBookChapters = BIBLE_BOOKS_MAP[selectedBook].chapters;
-    if (selectedChapter < currentBookChapters) {
-      setSelectedChapter(selectedChapter + 1);
-    } else if (currentIdx < BIBLE_BOOKS_ORDER.length - 1) {
-      const nextBook = BIBLE_BOOKS_ORDER[currentIdx + 1];
-      setSelectedBook(nextBook);
-      setSelectedChapter(1);
-      showToast(`Switched to ${BIBLE_BOOKS_MAP[nextBook].name}`);
+    if (nextTarget) {
+      navigateToPassage({ book: nextTarget.book, chapter: nextTarget.chapter });
     } else {
       showToast('You are at the very end of the Holy Bible');
     }
@@ -509,10 +658,7 @@ export default function BibleExplorer() {
                   <button
                     key={ch}
                     onClick={() => {
-                      setSelectedBook(viewingChaptersForBook);
-                      setSelectedChapter(ch);
-                      setViewingChaptersForBook(null);
-                      setActiveTab('read');
+                      navigateToPassage({ book: viewingChaptersForBook, chapter: ch });
                     }}
                     className={`py-2 text-center rounded text-xs transition-all border ${
                       selectedBook === viewingChaptersForBook && selectedChapter === ch
@@ -662,21 +808,24 @@ export default function BibleExplorer() {
                   setSearchResults([]);
                 }}
                 className="p-2 text-on-surface-variant hover:text-primary mr-1"
+                aria-label="Back"
               >
                 <ArrowLeft size={20} />
               </button>
-              <div className="relative flex-1">
+              <form onSubmit={handleSearchSubmit} className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={18} />
                 <input 
                   autoFocus
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className="w-full pl-10 pr-8 py-2 bg-background dark:bg-zinc-900 border border-outline-variant rounded focus:outline-none focus:border-secondary transition-colors text-sm" 
-                  placeholder="Search entire Bible..." 
+                  onKeyDown={handleSearchKeyDown}
+                  className="w-full pl-10 pr-8 py-2 bg-background dark:bg-zinc-900 border border-outline-variant rounded-xl focus:outline-none focus:border-secondary transition-colors text-sm" 
+                  placeholder="e.g. John 19, Esther 9:2, Genesis 1:1-5..." 
                   type="text"
                 />
                 {searchQuery && (
                   <button 
+                    type="button"
                     onClick={() => {
                       setSearchQuery('');
                       setSearchResults([]);
@@ -687,35 +836,110 @@ export default function BibleExplorer() {
                   </button>
                 )}
 
-                {/* Mobile Search Results Overlay */}
-                {searchResults.length > 0 && (
-                  <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-outline-variant rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto p-2">
-                    <p className="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-1 mb-1 border-b border-outline-variant/30">Matches in KJV Bible</p>
-                    {searchResults.map((match, i) => (
-                      <button
-                        key={i}
-                        onClick={() => {
-                          setSelectedBook(match.book.toLowerCase());
-                          setSelectedChapter(match.chapter);
-                          setActiveTab('read');
-                          setSearchQuery('');
-                          setSearchResults([]);
-                          setMobileSearchOpen(false);
-                          showToast(`Loaded ${match.book} ${match.chapter}`);
-                          setTimeout(() => {
-                            const el = document.getElementById(`verse-${match.number}`);
-                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                          }, 300);
-                        }}
-                        className="w-full text-left px-3 py-2.5 text-xs rounded hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-colors flex flex-col gap-1 border-b border-outline-variant/10 last:border-0"
-                      >
-                        <span className="font-semibold text-primary">{match.book} {match.chapter}:{match.number}</span>
-                        <p className="text-on-surface-variant italic line-clamp-2">{match.text}</p>
-                      </button>
-                    ))}
+                {/* Mobile Smart Search Suggestions Overlay */}
+                {(liveReference || bookSuggestions.length > 0 || searchResults.length > 0) && (
+                  <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-outline-variant rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto p-2.5 animate-fade-in text-left">
+                    {/* Direct Passage Match */}
+                    {liveReference && liveReference.isValid && (
+                      <div className="mb-2 p-1.5 bg-secondary/10 dark:bg-secondary/15 rounded-xl border border-secondary/30">
+                        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest px-2 py-0.5 mb-1 font-label-caps">
+                          Direct Scripture Passage
+                        </p>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            navigateToPassage({
+                              book: liveReference.bookKey,
+                              chapter: liveReference.chapter,
+                              verse: liveReference.verseStart,
+                              verseEnd: liveReference.verseEnd
+                            });
+                          }}
+                          className="w-full text-left p-2.5 rounded-lg bg-white dark:bg-zinc-800 hover:bg-secondary/20 border border-secondary/40 transition-all flex items-center justify-between group cursor-pointer shadow-xs"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-secondary/15 text-secondary flex items-center justify-center shrink-0">
+                              <BookOpen size={16} />
+                            </div>
+                            <div className="truncate">
+                              <p className="text-xs font-bold text-primary group-hover:text-secondary transition-colors truncate">
+                                Go to {liveReference.displayText}
+                              </p>
+                              <p className="text-[10px] text-on-surface-variant truncate">
+                                {liveReference.verseStart 
+                                  ? `Jump to ${liveReference.verseEnd ? `verses ${liveReference.verseStart}–${liveReference.verseEnd}` : `verse ${liveReference.verseStart}`}` 
+                                  : 'Open complete chapter'} • {liveReference.testament}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-bold text-secondary uppercase tracking-wider shrink-0 flex items-center gap-1 group-hover:translate-x-1 transition-transform ml-2">
+                            Open →
+                          </span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Invalid Reference warning */}
+                    {liveReference && !liveReference.isValid && (
+                      <div className="mb-2 p-2.5 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 rounded-xl text-xs flex items-center gap-2">
+                        <AlertCircle size={15} className="shrink-0 text-amber-600" />
+                        <span>{liveReference.error}</span>
+                      </div>
+                    )}
+
+                    {/* Book suggestions */}
+                    {bookSuggestions.length > 0 && !liveReference && (
+                      <div className="mb-2">
+                        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest px-2 py-0.5 mb-1 font-label-caps border-b border-outline-variant/30">
+                          Matching Books
+                        </p>
+                        {bookSuggestions.map((b) => (
+                          <button
+                            key={b.bookKey}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              navigateToPassage({ book: b.bookKey, chapter: 1 });
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-colors flex items-center justify-between cursor-pointer"
+                          >
+                            <span className="font-semibold text-primary">{b.bookName}</span>
+                            <span className="text-[10px] text-on-surface-variant font-medium">Chapter 1 ({b.chapters} chs)</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Full-text search results */}
+                    {searchResults.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest px-2 py-0.5 mb-1 font-label-caps border-b border-outline-variant/30">
+                          Keyword Matches ({activeTranslation})
+                        </p>
+                        {searchResults.map((match, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              navigateToPassage({
+                                book: match.book,
+                                chapter: match.chapter,
+                                verse: match.number
+                              });
+                            }}
+                            className="w-full text-left px-3 py-2 text-[11px] rounded-lg hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-colors flex flex-col gap-0.5 border-b border-outline-variant/10 last:border-0 cursor-pointer"
+                          >
+                            <span className="font-semibold text-primary">{match.book} {match.chapter}:{match.number}</span>
+                            <p className="text-on-surface-variant italic line-clamp-1">{match.text}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
+              </form>
             </div>
           ) : (
             /* Normal Header Content */
@@ -752,55 +976,135 @@ export default function BibleExplorer() {
               </div>
               
               {/* Desktop-only Search input */}
-              <div className="hidden md:block relative flex-1 max-w-xs mx-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={16} />
-                <input 
-                  ref={searchInputRef}
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setTimeout(() => setSearchFocused(false), 250)}
-                  className="w-full pl-9 pr-8 py-1.5 bg-background dark:bg-zinc-900 border border-outline-variant rounded focus:outline-none focus:border-secondary transition-colors text-xs" 
-                  placeholder="Search entire Bible..." 
-                  type="text"
-                />
-                {searchQuery && (
-                  <button 
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSearchResults([]);
-                    }} 
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
+              <div className="hidden md:block relative flex-1 max-w-sm mx-4">
+                <form onSubmit={handleSearchSubmit} className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={16} />
+                  <input 
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onKeyDown={handleSearchKeyDown}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setTimeout(() => setSearchFocused(false), 250)}
+                    className="w-full pl-9 pr-8 py-2 bg-background dark:bg-zinc-900 border border-outline-variant rounded-xl focus:outline-none focus:border-secondary transition-colors text-xs" 
+                    placeholder="Search passage (e.g. John 19, Esther 9:2, Gen 1:1-5) or keywords..." 
+                    type="text"
+                  />
+                  {searchQuery && (
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSearchResults([]);
+                      }} 
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </form>
 
                 {/* Search Suggestions Panel (Desktop) */}
-                {searchFocused && searchResults.length > 0 && (
-                  <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-outline-variant rounded-xl shadow-2xl z-50 max-h-72 overflow-y-auto p-2">
-                    <p className="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-1 mb-1 border-b border-outline-variant/30">Matches in KJV Bible</p>
-                    {searchResults.map((match, i) => (
-                      <button
-                        key={i}
-                        onClick={() => {
-                          setSelectedBook(match.book.toLowerCase());
-                          setSelectedChapter(match.chapter);
-                          setActiveTab('read');
-                          setSearchQuery('');
-                          setSearchResults([]);
-                          showToast(`Loaded ${match.book} ${match.chapter}`);
-                          setTimeout(() => {
-                            const el = document.getElementById(`verse-${match.number}`);
-                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                          }, 300);
-                        }}
-                        className="w-full text-left px-3 py-2 text-[11px] rounded hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-colors flex flex-col gap-0.5 border-b border-outline-variant/10 last:border-0"
-                      >
-                        <span className="font-semibold text-primary">{match.book} {match.chapter}:{match.number}</span>
-                        <p className="text-on-surface-variant italic line-clamp-1">{match.text}</p>
-                      </button>
-                    ))}
+                {searchFocused && (liveReference || bookSuggestions.length > 0 || searchResults.length > 0) && (
+                  <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-outline-variant rounded-2xl shadow-2xl z-50 max-h-72 overflow-y-auto p-2.5 animate-fade-in text-left">
+                    {/* Direct Passage Match */}
+                    {liveReference && liveReference.isValid && (
+                      <div className="mb-2 p-1.5 bg-secondary/10 dark:bg-secondary/15 rounded-xl border border-secondary/30">
+                        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest px-2 py-0.5 mb-1 font-label-caps">
+                          Direct Scripture Passage
+                        </p>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            navigateToPassage({
+                              book: liveReference.bookKey,
+                              chapter: liveReference.chapter,
+                              verse: liveReference.verseStart,
+                              verseEnd: liveReference.verseEnd
+                            });
+                          }}
+                          className="w-full text-left p-2.5 rounded-lg bg-white dark:bg-zinc-800 hover:bg-secondary/20 border border-secondary/40 transition-all flex items-center justify-between group cursor-pointer shadow-xs"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-secondary/15 text-secondary flex items-center justify-center shrink-0">
+                              <BookOpen size={16} />
+                            </div>
+                            <div className="truncate">
+                              <p className="text-xs font-bold text-primary group-hover:text-secondary transition-colors truncate">
+                                Go to {liveReference.displayText}
+                              </p>
+                              <p className="text-[10px] text-on-surface-variant truncate">
+                                {liveReference.verseStart 
+                                  ? `Jump to ${liveReference.verseEnd ? `verses ${liveReference.verseStart}–${liveReference.verseEnd}` : `verse ${liveReference.verseStart}`}` 
+                                  : 'Open complete chapter'} • {liveReference.testament}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-bold text-secondary uppercase tracking-wider shrink-0 flex items-center gap-1 group-hover:translate-x-1 transition-transform ml-2">
+                            Open →
+                          </span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Invalid Reference warning */}
+                    {liveReference && !liveReference.isValid && (
+                      <div className="mb-2 p-2.5 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 rounded-xl text-xs flex items-center gap-2">
+                        <AlertCircle size={15} className="shrink-0 text-amber-600" />
+                        <span>{liveReference.error}</span>
+                      </div>
+                    )}
+
+                    {/* Book suggestions */}
+                    {bookSuggestions.length > 0 && !liveReference && (
+                      <div className="mb-2">
+                        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest px-2 py-0.5 mb-1 font-label-caps border-b border-outline-variant/30">
+                          Matching Books
+                        </p>
+                        {bookSuggestions.map((b) => (
+                          <button
+                            key={b.bookKey}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              navigateToPassage({ book: b.bookKey, chapter: 1 });
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-colors flex items-center justify-between cursor-pointer"
+                          >
+                            <span className="font-semibold text-primary">{b.bookName}</span>
+                            <span className="text-[10px] text-on-surface-variant font-medium">Chapter 1 ({b.chapters} chs)</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Full-text keyword search results */}
+                    {searchResults.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest px-2 py-0.5 mb-1 font-label-caps border-b border-outline-variant/30">
+                          Keyword Matches ({activeTranslation})
+                        </p>
+                        {searchResults.map((match, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              navigateToPassage({
+                                book: match.book,
+                                chapter: match.chapter,
+                                verse: match.number
+                              });
+                            }}
+                            className="w-full text-left px-3 py-2 text-[11px] rounded-lg hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-colors flex flex-col gap-0.5 border-b border-outline-variant/10 last:border-0 cursor-pointer"
+                          >
+                            <span className="font-semibold text-primary">{match.book} {match.chapter}:{match.number}</span>
+                            <p className="text-on-surface-variant italic line-clamp-1">{match.text}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -894,25 +1198,35 @@ export default function BibleExplorer() {
                 {bibleData && !loading && !error && (
                   <>
                     {/* Header Section */}
-                    <div className="mb-stack-lg border-b border-outline-variant pb-stack-sm flex items-end justify-between">
+                    <div className="mb-stack-lg border-b border-outline-variant pb-stack-sm flex items-end justify-between flex-wrap gap-4">
                       <div className="text-left">
                         <p className="font-label-caps text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-2">{bibleData.testament}</p>
                         <h1 className="font-display-lg text-[28px] md:text-[36px] text-primary flex items-center flex-wrap gap-x-2">
                           <span>{bibleData.book}</span>
                           <span className="font-normal text-on-surface-variant/80">Chapter {bibleData.chapter}</span>
                         </h1>
+                        {highlightedVerses.length > 0 && (
+                          <div className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1 bg-amber-500/15 border border-amber-500/40 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold font-label-caps animate-fade-in">
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span>
+                              {highlightedVerses.length === 1 
+                                ? `Verse ${highlightedVerses[0]} Focused` 
+                                : `Verses ${highlightedVerses[0]}–${highlightedVerses[highlightedVerses.length - 1]} Focused`}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex gap-2 mb-2">
                         <button 
                           onClick={handleShare}
-                          className="p-2 border border-outline-variant rounded-full hover:border-secondary transition-colors group"
+                          className="p-2 border border-outline-variant rounded-full hover:border-secondary transition-colors group cursor-pointer"
                           title="Share page"
                         >
                           <Share2 size={16} className="text-on-surface-variant group-hover:text-secondary" />
                         </button>
                         <button 
                           onClick={handlePrint}
-                          className="p-2 border border-outline-variant rounded-full hover:border-secondary transition-colors group"
+                          className="p-2 border border-outline-variant rounded-full hover:border-secondary transition-colors group cursor-pointer"
                           title="Print chapter"
                         >
                           <Printer size={16} className="text-on-surface-variant group-hover:text-secondary" />
@@ -925,20 +1239,32 @@ export default function BibleExplorer() {
                       {bibleData.verses.map((verse) => {
                         const verseKey = `${selectedBook}-${selectedChapter}-${verse.number}`;
                         const isBookmarked = bookmarkedVerses.some((v) => v.key === verseKey);
+                        const isHighlighted = highlightedVerses.includes(verse.number);
 
                         if (verse.highlight) {
                           return (
                             <div 
                               key={verse.number} 
                               id={`verse-${verse.number}`}
-                              className="my-stack-lg p-stack-md border-l-2 border-secondary bg-surface-container-low dark:bg-zinc-900 rounded-r-xl group relative"
+                              className={`my-stack-lg p-stack-md rounded-r-xl group relative transition-all ${
+                                isHighlighted
+                                  ? 'border-l-4 border-amber-500 bg-amber-500/10 dark:bg-amber-500/15 ring-1 ring-amber-500/30'
+                                  : 'border-l-2 border-secondary bg-surface-container-low dark:bg-zinc-900'
+                              }`}
                             >
                               <div className="flex justify-between items-start mb-4">
-                                <span className="font-label-caps text-[10px] font-bold text-secondary uppercase tracking-widest">Key Passage</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-label-caps text-[10px] font-bold text-secondary uppercase tracking-widest">Key Passage</span>
+                                  {isHighlighted && (
+                                    <span className="font-label-caps text-[9px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider bg-amber-500/25 px-1.5 py-0.5 rounded">
+                                      Verse {verse.number}
+                                    </span>
+                                  )}
+                                </div>
                                 <div className="flex gap-2">
                                   <button 
                                     onClick={() => toggleBookmark(verse.number, verse.text)}
-                                    className="text-secondary hover:scale-110 transition-transform"
+                                    className="text-secondary hover:scale-110 transition-transform cursor-pointer"
                                   >
                                     <Star size={16} fill={isBookmarked ? "currentColor" : "none"} />
                                   </button>
@@ -956,49 +1282,38 @@ export default function BibleExplorer() {
                           <div 
                             key={verse.number} 
                             id={`verse-${verse.number}`}
-                            className={`group relative flex gap-4 items-start hover:bg-surface-container-lowest dark:hover:bg-zinc-900 transition-all p-3 -mx-3 rounded-xl`}
+                            className={`group relative flex gap-4 items-start transition-all p-3 -mx-3 rounded-xl ${
+                              isHighlighted 
+                                ? 'bg-amber-500/10 dark:bg-amber-500/15 border-l-4 border-amber-500 ring-1 ring-amber-500/30 shadow-xs' 
+                                : 'hover:bg-surface-container-lowest dark:hover:bg-zinc-900'
+                            }`}
                           >
                             <div className="flex flex-col items-center gap-2 mt-1 min-w-[20px]">
-                              <span className="font-label-caps text-xs text-secondary font-bold">{verse.number}</span>
+                              <span className={`font-label-caps text-xs font-bold ${isHighlighted ? 'text-amber-700 dark:text-amber-400 font-extrabold' : 'text-secondary'}`}>
+                                {verse.number}
+                              </span>
                               <button 
                                 onClick={() => toggleBookmark(verse.number, verse.text)}
-                                className={`opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 ${isBookmarked ? 'opacity-100 text-secondary' : 'text-outline hover:text-secondary'}`}
+                                className={`opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 cursor-pointer ${isBookmarked ? 'opacity-100 text-secondary' : 'text-outline hover:text-secondary'}`}
                               >
                                 <Bookmark size={14} fill={isBookmarked ? "currentColor" : "none"} />
                               </button>
                             </div>
-                            <p className={`${getTextSizeClass()} text-on-surface`}>
-                              {verse.text}
-                            </p>
+                            <div className="flex-1">
+                              {isHighlighted && (
+                                <div className="mb-1">
+                                  <span className="font-label-caps text-[9px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-widest bg-amber-500/20 px-1.5 py-0.5 rounded">
+                                    Verse {verse.number}
+                                  </span>
+                                </div>
+                              )}
+                              <p className={`${getTextSizeClass()} ${isHighlighted ? 'text-primary font-medium' : 'text-on-surface'}`}>
+                                {verse.text}
+                              </p>
+                            </div>
                           </div>
                         );
                       })}
-
-                      {/* Chapter Navigation */}
-                      <div className="pt-stack-lg border-t border-outline-variant flex justify-between gap-4">
-                        <button 
-                          onClick={handlePrevChapter}
-                          className="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold uppercase tracking-widest font-label-caps"
-                        >
-                          <ChevronLeft size={16} />
-                          <span className="hidden sm:inline">Prev Chapter</span>
-                          <span className="sm:hidden">Prev</span>
-                        </button>
-                        
-                        {/* Book/Chapter Quick Display indicator */}
-                        <div className="text-xs font-bold text-secondary uppercase tracking-[0.15em] font-label-caps self-center">
-                          {bibleData.book} {bibleData.chapter}
-                        </div>
-
-                        <button 
-                          onClick={handleNextChapter}
-                          className="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold uppercase tracking-widest font-label-caps"
-                        >
-                          <span className="hidden sm:inline">Next Chapter</span>
-                          <span className="sm:hidden">Next</span>
-                          <ChevronRight size={16} />
-                        </button>
-                      </div>
 
                       {/* Mobile/Tablet Study Insights & Cross References */}
                       <div className="mt-8 lg:hidden space-y-6">
@@ -1038,40 +1353,70 @@ export default function BibleExplorer() {
                         )}
                       </div>
 
-                      {/* Chapter Navigation Toolbar (Responsive on Mobile, Tablet & Desktop) */}
-                      <div className="mt-10 pt-6 border-t border-outline-variant/40 flex items-center justify-between gap-3 flex-wrap">
-                        <button
-                          type="button"
-                          onClick={handlePrevChapter}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-surface-container-low hover:bg-surface-container dark:bg-zinc-900 border border-outline-variant/60 rounded-xl text-xs font-bold text-primary transition-all active:scale-95 cursor-pointer shadow-sm"
-                          title="Navigate to Previous Chapter"
-                        >
-                          <ChevronLeft size={16} />
-                          <span className="hidden min-[420px]:inline">Previous Chapter</span>
-                          <span className="min-[420px]:hidden">Prev</span>
-                        </button>
+                      {/* Unified Intelligent Chapter Navigation */}
+                      <div className="mt-12 pt-6 border-t border-outline-variant/40">
+                        <div className="bg-surface-container-low/70 dark:bg-zinc-900/70 border border-outline-variant/60 rounded-2xl p-3.5 sm:p-5 shadow-xs">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                            
+                            {/* Previous Chapter / Backward Navigation */}
+                            <button
+                              type="button"
+                              onClick={handlePrevChapter}
+                              disabled={!prevTarget}
+                              className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+                                prevTarget
+                                  ? 'bg-surface dark:bg-zinc-800 border border-outline-variant/70 text-on-surface hover:text-primary hover:border-secondary active:scale-95 shadow-2xs'
+                                  : 'opacity-40 cursor-not-allowed bg-transparent text-on-surface-variant border border-outline-variant/30'
+                              }`}
+                              title={prevTarget ? `Return to ${prevTarget.label}` : 'Beginning of Scripture (Genesis 1)'}
+                            >
+                              <ChevronLeft size={16} className="shrink-0" />
+                              <span className="truncate">
+                                {prevTarget ? `Prev: ${prevTarget.shortLabel}` : 'Beginning'}
+                              </span>
+                            </button>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMobileBooksDrawerOpen(true);
-                            setViewingChaptersForBook(selectedBook);
-                          }}
-                          className="px-3.5 py-2 bg-secondary/10 text-secondary hover:bg-secondary/20 rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer"
-                        >
-                          Ch. {selectedChapter} of {BIBLE_BOOKS_MAP[selectedBook]?.chapters || 1}
-                        </button>
+                            {/* Position & Chapter Quick Jump */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMobileBooksDrawerOpen(true);
+                                setViewingChaptersForBook(selectedBook);
+                              }}
+                              className="px-3.5 py-2.5 bg-secondary/10 hover:bg-secondary/20 text-secondary rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                              title="Click to view all chapters"
+                            >
+                              <span>{bibleData.book} {bibleData.chapter}</span>
+                              <span className="text-secondary/50 font-normal">/</span>
+                              <span className="text-[11px] font-medium opacity-80">{currentBookChapters} chs</span>
+                            </button>
 
-                        <button
-                          type="button"
-                          onClick={handleNextChapter}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-sm ml-auto"
-                          title="Navigate to Next Chapter"
-                        >
-                          <span className="hidden min-[420px]:inline">Next Chapter</span>
-                          <span className="min-[420px]:hidden">Next</span>
-                          <ChevronRight size={16} />
-                        </button>
+                            {/* Unified Intelligent Action Button */}
+                            {nextTarget ? (
+                              <button
+                                type="button"
+                                onClick={handleNextChapter}
+                                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-container text-on-primary rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-sm group shrink-0"
+                                title={`Navigate forward to ${nextTarget.label}`}
+                              >
+                                <span className="truncate">{nextTarget.actionLabel}</span>
+                                <ChevronRight size={16} className="shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                              </button>
+                            ) : (
+                              /* Intelligently switches direction at end of Revelation (Rev 22) */
+                              <button
+                                type="button"
+                                onClick={handlePrevChapter}
+                                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-container text-on-primary rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-sm shrink-0"
+                                title="Return to Revelation 21"
+                              >
+                                <ChevronLeft size={16} className="shrink-0" />
+                                <span>Return to Revelation 21</span>
+                              </button>
+                            )}
+
+                          </div>
+                        </div>
                       </div>
                     </article>
                   </>
@@ -1102,10 +1447,17 @@ export default function BibleExplorer() {
                 ) : (
                   <div className="space-y-6">
                     {bookmarkedVerses.map((fav, index) => (
-                      <div key={index} className="bg-surface-container-low dark:bg-zinc-900 border border-outline-variant/30 p-6 rounded-xl flex gap-4 items-start relative group">
-                        <div className="flex-1">
-                          <span className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2 block">
-                            {fav.book} {fav.chapter}:{fav.number}
+                      <div 
+                        key={index} 
+                        className="bg-surface-container-low dark:bg-zinc-900 border border-outline-variant/30 hover:border-secondary/60 p-6 rounded-xl flex gap-4 items-start relative group transition-all"
+                      >
+                        <div 
+                          className="flex-1 cursor-pointer"
+                          onClick={() => navigateToPassage({ book: fav.book.toLowerCase(), chapter: fav.chapter, verse: fav.number })}
+                          title={`Read ${fav.book} ${fav.chapter}:${fav.number}`}
+                        >
+                          <span className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2 flex items-center gap-1 group-hover:text-primary transition-colors">
+                            {fav.book} {fav.chapter}:{fav.number} →
                           </span>
                           <p className="font-verse-quote italic text-primary dark:text-secondary-fixed text-base leading-relaxed">
                             "{fav.text}"
@@ -1113,7 +1465,7 @@ export default function BibleExplorer() {
                         </div>
                         <button 
                           onClick={() => toggleBookmark(fav.number, fav.text)}
-                          className="text-on-surface-variant hover:text-red-600 transition-colors"
+                          className="text-on-surface-variant hover:text-red-600 transition-colors cursor-pointer p-1"
                           title="Remove bookmark"
                         >
                           <X size={16} />
@@ -1138,11 +1490,9 @@ export default function BibleExplorer() {
                     <button
                       key={index}
                       onClick={() => {
-                        setSelectedBook(hist.book.toLowerCase());
-                        setSelectedChapter(hist.chapter);
-                        setActiveTab('read');
+                        navigateToPassage({ book: hist.book.toLowerCase(), chapter: hist.chapter });
                       }}
-                      className="w-full bg-surface-container-lowest dark:bg-zinc-900 border border-outline-variant/30 p-4 rounded-lg flex items-center justify-between hover:border-secondary transition-colors text-left"
+                      className="w-full bg-surface-container-lowest dark:bg-zinc-900 border border-outline-variant/30 p-4 rounded-lg flex items-center justify-between hover:border-secondary transition-colors text-left cursor-pointer"
                     >
                       <div>
                         <p className="text-sm font-semibold text-primary">{hist.book} Chapter {hist.chapter}</p>
@@ -1294,13 +1644,9 @@ export default function BibleExplorer() {
                       <button
                         key={ch}
                         onClick={() => {
-                          setSelectedBook(viewingChaptersForBook);
-                          setSelectedChapter(ch);
-                          setViewingChaptersForBook(null);
-                          setMobileBooksDrawerOpen(false);
-                          setActiveTab('read');
+                          navigateToPassage({ book: viewingChaptersForBook, chapter: ch });
                         }}
-                        className={`py-2.5 text-center rounded text-xs transition-colors border ${
+                        className={`py-2.5 text-center rounded text-xs transition-colors border cursor-pointer ${
                           selectedBook === viewingChaptersForBook && selectedChapter === ch
                             ? 'bg-secondary text-white border-secondary font-bold'
                             : 'bg-surface-container-low dark:bg-zinc-800 border-outline-variant hover:bg-secondary-container/20 hover:border-secondary'

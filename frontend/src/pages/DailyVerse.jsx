@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { toPng } from 'html-to-image';
 import { 
   Send, 
   Share2, 
@@ -13,7 +14,11 @@ import {
   X, 
   Copy, 
   ExternalLink,
-  Check
+  Check,
+  Download,
+  Loader2,
+  RotateCcw,
+  AlertCircle
 } from 'lucide-react';
 import SEO from '../components/SEO';
 
@@ -26,6 +31,13 @@ export default function DailyVerse() {
   const [instagramModalOpen, setInstagramModalOpen] = useState(false);
   const [cardFlash, setCardFlash] = useState(false);
   const [shareToast, setShareToast] = useState(null);
+
+  // Automatic screenshot state
+  const storyCardRef = useRef(null);
+  const [isGeneratingScreenshot, setIsGeneratingScreenshot] = useState(false);
+  const [screenshotImage, setScreenshotImage] = useState(null);
+  const [screenshotError, setScreenshotError] = useState(null);
+  const [storyFormat, setStoryFormat] = useState('story'); // 'story' (9:16) or 'square' (1:1)
 
   useEffect(() => {
     fetch('/api/daily-verse')
@@ -106,14 +118,77 @@ export default function DailyVerse() {
       setTimeout(() => setCopiedBtn(null), 3000);
     } else if (platform === 'instagram') {
       setInstagramModalOpen(true);
+      setScreenshotImage(null);
+      setScreenshotError(null);
       setCopiedBtn('instagram');
-      showShareToast('Scripture copied! Screenshot the card for your Story.');
+      showShareToast('Caption copied! Ready to capture your Story card.');
       setTimeout(() => setCopiedBtn(null), 3000);
     } else if (platform === 'copy') {
       setCopiedBtn('copy');
       showShareToast('Scripture and link copied to clipboard!');
       setTimeout(() => setCopiedBtn(null), 3000);
     }
+  };
+
+  const handleTakeScreenshot = async () => {
+    if (!storyCardRef.current) return;
+    setIsGeneratingScreenshot(true);
+    setScreenshotError(null);
+    try {
+      // Small pause to guarantee font and DOM rendering is complete
+      await new Promise(r => setTimeout(r, 100));
+      const dataUrl = await toPng(storyCardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2.5,
+        quality: 0.98,
+        skipFonts: false
+      });
+      setScreenshotImage(dataUrl);
+      showShareToast('Screenshot generated! Preview ready.');
+    } catch (err) {
+      console.error('Failed to capture verse card screenshot:', err);
+      setScreenshotError('Unable to automatically generate the screenshot. Please try again.');
+    } finally {
+      setIsGeneratingScreenshot(false);
+    }
+  };
+
+  const downloadScreenshot = () => {
+    if (!screenshotImage) return;
+    const link = document.createElement('a');
+    const safeRef = (data?.reference || 'Daily_Bread').replace(/[^a-zA-Z0-9]/g, '_');
+    link.download = `Zionaviel_${safeRef}.png`;
+    link.href = screenshotImage;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showShareToast('Image saved! Ready to post to Instagram.');
+  };
+
+  const shareScreenshot = async () => {
+    if (!screenshotImage) return;
+    try {
+      const response = await fetch(screenshotImage);
+      const blob = await response.blob();
+      const safeRef = (data?.reference || 'Daily_Bread').replace(/[^a-zA-Z0-9]/g, '_');
+      const file = new File([blob], `Zionaviel_${safeRef}.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Daily Bread: ${data?.reference}`,
+          text: `"${data?.verse}" — ${data?.reference}\n\nRead more on Zionaviel: ${window.location.origin}/verse`
+        });
+        showShareToast('Shared successfully!');
+        return;
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.warn('Direct share failed:', err);
+      }
+    }
+    // Fallback to direct download
+    downloadScreenshot();
   };
 
   const handleReadAloud = (customText, customRef) => {
@@ -378,73 +453,236 @@ export default function DailyVerse() {
 
       {/* Instagram Story Sharing Modal */}
       {instagramModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-surface border border-outline-variant rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative text-left">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fade-in">
+          <div className="bg-surface border border-outline-variant rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl relative text-left my-auto max-h-[92vh] flex flex-col">
             <button 
-              onClick={() => setInstagramModalOpen(false)}
-              className="absolute top-4 right-4 text-on-surface-variant hover:text-primary p-1.5 rounded-full hover:bg-surface-container transition-colors cursor-pointer"
+              onClick={() => {
+                setInstagramModalOpen(false);
+                setScreenshotImage(null);
+                setScreenshotError(null);
+              }}
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-primary p-1.5 rounded-full hover:bg-surface-container transition-colors cursor-pointer z-10"
               aria-label="Close"
             >
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#fd1d1d] to-[#833ab4] text-white flex items-center justify-center shadow-sm">
-                <Camera size={16} />
+            {/* Modal Header */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#fd1d1d] via-[#e1306c] to-[#833ab4] text-white flex items-center justify-center shadow-sm shrink-0">
+                <Camera size={18} />
               </div>
               <div>
-                <h3 className="font-headline-sm text-lg font-bold text-primary">Share to Instagram Story</h3>
-                <p className="text-xs text-on-surface-variant">Caption copied to your clipboard!</p>
+                <h3 className="font-headline-sm text-base sm:text-lg font-bold text-primary">
+                  {screenshotImage ? 'Story Screenshot Ready!' : 'Share to Instagram Story'}
+                </h3>
+                <p className="text-xs text-on-surface-variant">
+                  {screenshotImage ? 'Download or share your high-res verse card' : 'Automatically captures a 9:16 verse card for your Story'}
+                </p>
               </div>
             </div>
 
-            {/* Story Card Mockup */}
-            <div className={`my-5 p-6 rounded-2xl bg-gradient-to-br from-[#041534] to-[#1b2a4a] text-white text-center shadow-lg relative overflow-hidden transition-all duration-300 ${cardFlash ? 'ring-4 ring-white brightness-125 scale-[1.01]' : ''}`}>
-              <div className="absolute top-3 right-3 text-[10px] font-bold tracking-widest uppercase text-white/50 font-label-caps">
-                Zionaviel Daily
+            {/* Format Selector */}
+            {!screenshotImage && (
+              <div className="flex items-center gap-2 mb-3 bg-surface-container-low p-1 rounded-xl border border-outline-variant/40 w-fit">
+                <button
+                  type="button"
+                  onClick={() => setStoryFormat('story')}
+                  className={`px-3 py-1 text-xs font-bold font-label-caps uppercase tracking-wider rounded-lg transition-all ${
+                    storyFormat === 'story'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  Story (9:16)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStoryFormat('square')}
+                  className={`px-3 py-1 text-xs font-bold font-label-caps uppercase tracking-wider rounded-lg transition-all ${
+                    storyFormat === 'square'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  Square (1:1)
+                </button>
               </div>
-              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-secondary-fixed block mb-2 font-label-caps">
-                Verse of the Day
-              </span>
-              <p className="font-verse-quote italic text-lg leading-relaxed text-white mb-3">
-                "{data.verse}"
-              </p>
-              <p className="font-label-caps text-xs font-bold text-secondary-fixed tracking-wider">
-                {data.reference} • {data.translation || 'ESV'}
-              </p>
+            )}
+
+            {/* Modal Body / Scrollable Area */}
+            <div className="flex-1 overflow-y-auto no-scrollbar py-1">
+              {screenshotError && (
+                <div className="mb-4 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-2.5 text-xs text-red-600 dark:text-red-400">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-semibold">Screenshot Error</p>
+                    <p className="mt-0.5">{screenshotError}</p>
+                    <button
+                      type="button"
+                      onClick={handleTakeScreenshot}
+                      className="mt-2 font-bold underline hover:no-underline cursor-pointer"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* View 1: Generated Image Preview */}
+              {screenshotImage ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-outline-variant/50 max-h-[420px] bg-black">
+                    <img 
+                      src={screenshotImage} 
+                      alt="Generated Instagram Story" 
+                      className="max-h-[420px] w-auto object-contain mx-auto"
+                    />
+                  </div>
+                  <p className="text-[11px] text-on-surface-variant text-center font-medium">
+                    ✨ High-resolution {storyFormat === 'story' ? '9:16 Story canvas' : '1:1 Post canvas'} ready for Instagram.
+                  </p>
+                </div>
+              ) : (
+                /* View 2: High-Resolution Verse Card Target (Captured by html-to-image) */
+                <div className="flex justify-center my-1">
+                  <div 
+                    ref={storyCardRef}
+                    className={`w-full max-w-[340px] ${
+                      storyFormat === 'story' ? 'aspect-[9/16]' : 'aspect-square'
+                    } rounded-2xl p-6 sm:p-7 flex flex-col justify-between text-white text-center relative overflow-hidden shadow-2xl select-none transition-all`}
+                    style={{
+                      background: 'radial-gradient(circle at 50% 20%, #0d2857 0%, #041534 50%, #020917 100%)',
+                      boxShadow: '0 20px 40px -15px rgba(4, 21, 52, 0.7)'
+                    }}
+                  >
+                    {/* Decorative Ambient Glow Elements */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-secondary/15 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-[#fd1d1d]/10 rounded-full blur-2xl pointer-events-none" />
+
+                    {/* Top Branding Section */}
+                    <div className="relative z-10 pt-1 flex flex-col items-center">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5 text-[#fed977]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M11 2h2v7h7v2h-7v11h-2v-11h-7v-2h7v-7z" />
+                        </svg>
+                        <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/90 font-label-caps">
+                          Zionaviel
+                        </span>
+                      </div>
+                      <span className="inline-block px-3 py-1 rounded-full bg-[#fed977]/15 border border-[#fed977]/30 text-[#fed977] text-[10px] font-bold tracking-[0.2em] uppercase font-label-caps shadow-sm">
+                        Verse of the Day
+                      </span>
+                    </div>
+
+                    {/* Middle Verse Text */}
+                    <div className="relative z-10 my-auto px-1 py-4 flex flex-col justify-center">
+                      <blockquote className={`font-verse-quote italic ${
+                        storyFormat === 'story' ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'
+                      } leading-relaxed text-white drop-shadow-md`}>
+                        "{data.verse}"
+                      </blockquote>
+                      <div className="mt-4 pt-3 border-t border-white/15 flex flex-col items-center">
+                        <p className="font-headline-sm text-sm sm:text-base font-bold text-[#fed977] tracking-wider">
+                          {data.reference}
+                        </p>
+                        <span className="text-[10px] font-semibold tracking-widest uppercase text-white/60 mt-0.5">
+                          {data.translation || 'English Standard Version'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bottom Footer Section */}
+                    <div className="relative z-10 pb-1 flex flex-col items-center gap-1 border-t border-white/10 pt-3">
+                      <p className="text-[10px] font-medium text-white/70 italic">
+                        "Thy word is a lamp unto my feet"
+                      </p>
+                      <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#fed977]/90 font-label-caps">
+                        zionaviel.me/verse
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="space-y-3">
-              <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/40 text-xs text-on-surface-variant space-y-1">
-                <p className="font-semibold text-primary">📱 How to Share on Instagram:</p>
-                <p>1. The scripture and Zionaviel link have been copied to your clipboard.</p>
-                <p>2. Take a screenshot of the verse card above to post directly to your Story!</p>
-              </div>
+            {/* Modal Action Controls */}
+            <div className="pt-3 border-t border-outline-variant/40 mt-3 space-y-2.5">
+              {screenshotImage ? (
+                /* Generated Preview Controls */
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    onClick={downloadScreenshot}
+                    className="py-3 px-3 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-98"
+                  >
+                    <Download size={15} /> Save / Download
+                  </button>
 
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`"${data.verse}" — ${data.reference}\n\nRead daily bread on: ${window.location.origin}/verse`);
-                    showShareToast('Caption copied again!');
-                  }}
-                  className="py-3 px-4 bg-surface-container hover:bg-surface-container-high text-primary rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Copy size={14} /> Copy Caption
-                </button>
+                  <button
+                    type="button"
+                    onClick={shareScreenshot}
+                    className="py-3 px-3 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-95 text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer active:scale-98"
+                  >
+                    <Share2 size={15} /> Share to Story
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCardFlash(true);
-                    setTimeout(() => setCardFlash(false), 500);
-                    showShareToast('📸 Take a screenshot of the card above!');
-                  }}
-                  className="py-3 px-4 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-95 text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer text-center"
-                >
-                  <Camera size={14} /> Take Screenshot
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`"${data.verse}" — ${data.reference}\n\nRead daily bread on: ${window.location.origin}/verse`);
+                      showShareToast('Caption copied to clipboard!');
+                    }}
+                    className="py-2.5 px-3 bg-surface-container hover:bg-surface-container-high text-primary rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer col-span-1"
+                  >
+                    <Copy size={13} /> Copy Caption
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScreenshotImage(null);
+                      setScreenshotError(null);
+                    }}
+                    className="py-2.5 px-3 border border-outline-variant hover:bg-surface-container text-on-surface-variant hover:text-primary rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer col-span-1"
+                  >
+                    <RotateCcw size={13} /> Retake
+                  </button>
+                </div>
+              ) : (
+                /* Pre-generation Capture Controls */
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`"${data.verse}" — ${data.reference}\n\nRead daily bread on: ${window.location.origin}/verse`);
+                      showShareToast('Caption copied!');
+                    }}
+                    className="sm:w-1/3 py-3 px-3 bg-surface-container hover:bg-surface-container-high text-primary rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Copy size={14} /> Copy Caption
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isGeneratingScreenshot}
+                    onClick={handleTakeScreenshot}
+                    className="flex-1 py-3 px-4 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-95 text-white rounded-xl text-xs font-bold font-label-caps uppercase tracking-wider transition-all flex items-center justify-center gap-2.5 shadow-md cursor-pointer text-center active:scale-98 disabled:opacity-60"
+                  >
+                    {isGeneratingScreenshot ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>Generating Screenshot...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera size={16} />
+                        <span>Take Screenshot</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
